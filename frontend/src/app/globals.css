@@ -206,6 +206,24 @@
     -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
+/* RE4 Remake typography tweaks using Helvetica stack */
+:root {
+  --font-helvetica-stack: 'Helvetica Neue', Helvetica, Arial,
+    sans-serif;
+}
+
+/* Prefer Helvetica for all sans text to emulate RE4 Remake typography */
+.font-sans {
+  font-family: var(--font-helvetica-stack);
+}
+
+/* Hero title specific styles to get that RE4 impact */
+.re-hero-title {
+  letter-spacing: 0.06em;
+  font-weight: 800; /* extra bold */
+  text-transform: none;
+}
+
 /* modern nav tweaks */
 .bg-white\/3 {
   background-color: rgba(255, 255, 255, 0.03);
