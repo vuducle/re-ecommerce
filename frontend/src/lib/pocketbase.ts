@@ -47,6 +47,15 @@ export async function getCategoryBySlug(slug: string) {
   return data.items[0] ?? null;
 }
 
+export async function getProductBySlug(slug: string) {
+  const params = { filter: `slug="${slug}"`, perPage: 1 };
+  const res = await pb.get('/api/collections/products/records', {
+    params,
+  });
+  const data = res.data as PBList<Product>;
+  return data.items[0] ?? null;
+}
+
 export type Product = {
   id: string;
   title?: string;
@@ -58,6 +67,9 @@ export type Product = {
   images?: string[]; // assuming images are stored as array of URLs
   category?: string; // assuming single category reference
   categories?: string[]; // assuming multiple categories reference
+  collectionId?: string; // pocketbase collection id for building file URLs
+  isFeatured?: boolean;
+  isAvailable?: boolean;
   created: string;
   updated?: string;
   [key: string]: unknown;
