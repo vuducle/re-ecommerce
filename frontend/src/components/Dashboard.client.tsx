@@ -103,7 +103,7 @@ export default function DashboardClient() {
         </Button>
       </div>
       <div className="mt-8">
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 flex-wrap mb-6">
           <TabButton
             active={tab === 'users'}
             onClick={() => {
