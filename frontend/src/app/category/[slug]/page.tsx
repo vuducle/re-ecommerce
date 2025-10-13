@@ -19,6 +19,10 @@ function formatVND(amount?: number | null) {
   }).format(amount);
 }
 
+function wordToUpperCase(str: string) {
+  return str.toUpperCase();
+}
+
 type Props = {
   params: { slug: string };
 };
@@ -45,7 +49,7 @@ export default async function CategoryPage({ params }: Props) {
     <main className="w-full py-12">
       <div className="max-w-5xl mx-auto px-4 mb-8">
         <header>
-          <h1 className="text-4xl font-extrabold tracking-tight">
+          <h1 className="text-4xl font-extrabold tracking-tight uppercase text-amber-100 drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
             {category.name}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -79,7 +83,7 @@ export default async function CategoryPage({ params }: Props) {
 
                 return (
                   <li key={p.id} className="relative">
-                    <div className="bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 text-white shadow-lg border border-zinc-800 rounded-lg overflow-hidden">
+                    <div className="bg-gradient-to-br from-[#060606] via-zinc-900 to-[#111111] text-white shadow-2xl border border-rose-900/10 rounded-lg overflow-hidden">
                       <div className="flex flex-col sm:flex-row items-start gap-4 p-5">
                         {/* Image column */}
                         <div className="shrink-0 w-full sm:w-40">
@@ -103,7 +107,7 @@ export default async function CategoryPage({ params }: Props) {
 
                         {/* Details column */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-2xl font-extrabold leading-tight tracking-tight">
+                          <h3 className="text-2xl font-extrabold leading-tight text-white tracking-tight uppercase">
                             {p.title ?? p.name ?? 'Untitled'}
                           </h3>
 
@@ -115,13 +119,21 @@ export default async function CategoryPage({ params }: Props) {
 
                           <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-zinc-300">
                             <div className="flex items-center gap-2">
-                              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                              <span
+                                className={`h-2 w-2 rounded-full ${
+                                  p.isAvailable
+                                    ? 'bg-emerald-400'
+                                    : 'bg-zinc-500'
+                                }`}
+                              />
                               <div>
                                 <div className="text-zinc-100 font-medium">
                                   Availability
                                 </div>
                                 <div className="text-zinc-300 text-xs">
-                                  {typeof p.stock === 'number'
+                                  {p.isAvailable === true
+                                    ? p.stock
+                                    : typeof p.stock === 'number'
                                     ? `${p.stock} in stock`
                                     : 'Unknown'}
                                 </div>
@@ -135,7 +147,7 @@ export default async function CategoryPage({ params }: Props) {
                                   Art.-Nr.
                                 </div>
                                 <div className="text-zinc-300 text-xs">
-                                  {p.id}
+                                  {wordToUpperCase(p.id)}
                                 </div>
                               </div>
                             </div>
@@ -174,7 +186,7 @@ export default async function CategoryPage({ params }: Props) {
                         <div className="w-full sm:w-56 flex-shrink-0 flex flex-col items-start sm:items-end justify-between gap-3">
                           <div className="text-right">
                             {p.price !== undefined && (
-                              <div className="text-3xl font-extrabold text-rose-500 drop-shadow-[0_8px_24px_rgba(220,38,38,0.18)]">
+                              <div className="text-3xl font-extrabold text-rose-500 drop-shadow-[0_10px_30px_rgba(220,38,38,0.22)]">
                                 {formatVND(p.price)}
                               </div>
                             )}
@@ -201,7 +213,7 @@ export default async function CategoryPage({ params }: Props) {
                                   'false') === 'true' &&
                                 (typeof p.stock !== 'number' ||
                                   p.stock > 0)
-                                  ? 'bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-[0_8px_32px_rgba(220,38,38,0.18)]'
+                                  ? 'bg-gradient-to-b from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 active:scale-95 shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_16px_40px_rgba(220,38,38,0.15)] border border-rose-800'
                                   : 'bg-zinc-700/40 cursor-not-allowed'
                               }`}
                             >
