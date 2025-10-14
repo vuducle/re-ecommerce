@@ -88,30 +88,50 @@ export default function UsersTable({ users, loading, error }: Props) {
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
-  const total = mappedUsers.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-    if (page < 1) setPage(1);
-  }, [page, pageSize, totalPages]);
-
   const start = (page - 1) * pageSize;
-  const end = Math.min(start + pageSize, total);
+
 
   // dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [localAdded, setLocalAdded] = useState<MappedUser[]>([]);
 
-  const allUsers = React.useMemo(
-    () => [...localAdded, ...mappedUsers],
-    [localAdded, mappedUsers]
-  );
-  const totalAll = allUsers.length;
-  const pagedUsersAll = allUsers.slice(
-    start,
-    Math.min(start + pageSize, totalAll)
-  );
+  const allUsers = React.useMemo(() => [...localAdded, ...mappedUsers], [localAdded, mappedUsers]);
+
+  // search state
+  const [query, setQuery] = useState<string>('');
+  const [debouncedQuery, setDebouncedQuery] = useState<string>(query);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const filteredUsers = React.useMemo(() => {
+    const q = (debouncedQuery ?? '').toLowerCase();
+    if (!q) return allUsers;
+    return allUsers.filter((u) => {
+      const name = (u.name ?? '') as string;
+      const email = (u.email ?? '') as string;
+      const loc = (u.lastKnownLocation ?? '') as string;
+      return (
+        name.toLowerCase().includes(q) ||
+        email.toLowerCase().includes(q) ||
+        loc.toLowerCase().includes(q)
+      );
+    });
+  }, [allUsers, debouncedQuery]);
+
+  const totalFiltered = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+
+  // Ensure current page is within bounds when pageSize or total changes
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+    if (page < 1) setPage(1);
+  }, [page, pageSize, totalPages]);
+
+  const end = Math.min(start + pageSize, totalFiltered);
+  const pagedUsersAll = filteredUsers.slice(start, end);
 
   // Lightbox state
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -144,6 +164,7 @@ export default function UsersTable({ users, loading, error }: Props) {
     setPage(1);
   };
 
+  const total = totalFiltered;
   const startDisplay = total === 0 ? 0 : start + 1;
 
   return (
@@ -177,9 +198,18 @@ export default function UsersTable({ users, loading, error }: Props) {
             <option value={50}>50</option>
           </select>
           <span className="text-xs text-gray-400">per page</span>
+          <div className="ml-3">
+            <input
+              type="search"
+              placeholder="Search name, email, location"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-64"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-gray-300">
+  <div className="flex items-center gap-2 text-xs text-gray-300">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
@@ -209,6 +239,27 @@ export default function UsersTable({ users, loading, error }: Props) {
           </button>
         </div>
       </div>
+
+      <CreateUserDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(user) => {
+          const asString = (v: unknown) => (typeof v === 'string' ? v : v == null ? '' : String(v));
+          const mapped: MappedUser = {
+            id: asString(user.id ?? user._id ?? user.recordId ?? user['id']),
+            email: asString(user.email ?? user.identity ?? ''),
+            name: asString(user.name ?? user.fullName ?? user.displayName ?? ''),
+            verified: !!(user.verified ?? user.isVerified ?? false),
+            isAdmin: !!(user.isAdmin ?? user.admin ?? false),
+            avatarUrl: (user as Record<string, unknown>).profileImage as string | undefined,
+            lastKnownLocation: asString(user.lastKnownLocation ?? user.location ?? ''),
+            created: asString(user.created ?? ''),
+            updated: asString(user.updated ?? ''),
+          };
+          setLocalAdded((s) => [mapped, ...s]);
+          setCreateOpen(false);
+        }}
+      />
 
       {/* Mobile: stacked cards */}
       <div className="space-y-3 mt-4 md:hidden">

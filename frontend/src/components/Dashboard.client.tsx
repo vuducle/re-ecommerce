@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import type { RootState, AppDispatch } from '../store';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 import { useRouter } from 'next/navigation';
-import { Button } from './ui/button';
+// Button component not used in this file currently
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { clearAuth } from '../store/slices/authSlice';
+// clearAuth imported but not used in this view; keep for future use
 import pb, { buildFileUrl } from '../lib/pocketbase';
 import UsersTable from './UsersTable.client';
 import {
@@ -19,7 +19,7 @@ import {
 export default function DashboardClient() {
   const auth = useSelector((s: RootState) => s.auth);
   const router = useRouter();
-  const dispatch = useDispatch<AppDispatch>();
+  // dispatch not used currently
   const [tab, setTab] = React.useState<
     'users' | 'products' | 'categories' | 'orders'
   >('users');
