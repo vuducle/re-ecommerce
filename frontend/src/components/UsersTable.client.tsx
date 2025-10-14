@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { buildFileUrl } from '../lib/pocketbase';
+import Loading from './ui/Loading';
 
 type Props = {
   users: Array<Record<string, unknown>> | null;
@@ -10,21 +11,8 @@ type Props = {
 };
 
 export default function UsersTable({ users, loading, error }: Props) {
-  if (loading) return <div>Loading users…</div>;
-
-  if (error)
-    return (
-      <div className="text-sm text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-700">
-        Error loading users: {error}
-      </div>
-    );
-
-  if (!users || users.length === 0)
-    return (
-      <div className="text-sm text-gray-300">No users found.</div>
-    );
-
-  const mappedUsers = users.map((u) => {
+  // normalize users early so hooks are always called in the same order
+  const mappedUsers = (users ?? []).map((u) => {
     const id = (u.id ?? u._id ?? u.recordId ?? '') as string;
     const name =
       (u.name as string) ||
@@ -83,11 +71,97 @@ export default function UsersTable({ users, loading, error }: Props) {
     };
   });
 
+  // Pagination state
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState<number>(1);
+
+  const total = mappedUsers.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // Ensure current page is within bounds when pageSize or total changes
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+    if (page < 1) setPage(1);
+  }, [page, pageSize, totalPages]);
+
+  const start = (page - 1) * pageSize;
+  const end = Math.min(start + pageSize, total);
+  const pagedUsers = mappedUsers.slice(start, end);
+
+  if (loading) return <Loading text="Loading users…" />;
+
+  if (error)
+    return (
+      <div className="text-sm text-yellow-300 bg-yellow-900/20 p-2 rounded border border-yellow-700">
+        Error loading users: {error}
+      </div>
+    );
+
+  if (!users || users.length === 0)
+    return (
+      <div className="text-sm text-gray-300">No users found.</div>
+    );
+  // pagination controls will be rendered above the list/table
+  const handlePageSizeChange = (value: number) => {
+    setPageSize(value);
+    setPage(1);
+  };
+
+  const startDisplay = total === 0 ? 0 : start + 1;
+
   return (
     <>
+      <div className="flex items-center justify-between gap-3 mt-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-400">Show</label>
+          <select
+            value={pageSize}
+            onChange={(e) =>
+              handlePageSizeChange(Number(e.target.value))
+            }
+            className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          <span className="text-xs text-gray-400">per page</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-gray-300">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className={`px-2 py-1 rounded ${
+              page <= 1
+                ? 'opacity-50 cursor-not-allowed'
+                : 'bg-gray-800 hover:bg-gray-700'
+            }`}
+          >
+            Prev
+          </button>
+          <span className="font-mono">
+            {startDisplay}-{end} of {total}
+          </span>
+          <button
+            onClick={() =>
+              setPage((p) => Math.min(totalPages, p + 1))
+            }
+            disabled={page >= totalPages}
+            className={`px-2 py-1 rounded ${
+              page >= totalPages
+                ? 'opacity-50 cursor-not-allowed'
+                : 'bg-gray-800 hover:bg-gray-700'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
       {/* Mobile: stacked cards */}
       <div className="space-y-3 mt-4 md:hidden">
-        {mappedUsers.map((mu) => (
+        {pagedUsers.map((mu) => (
           <div
             key={mu.id}
             className="bg-[#0b0b0b] border border-[#2a0808] rounded p-3 flex gap-3 items-start"
@@ -173,7 +247,7 @@ export default function UsersTable({ users, loading, error }: Props) {
             </tr>
           </thead>
           <tbody>
-            {mappedUsers.map((mu) => (
+            {pagedUsers.map((mu) => (
               <tr key={mu.id} className="border-t border-[#2a0808]">
                 <td className="px-3 py-3 align-middle">
                   {mu.avatarUrl ? (

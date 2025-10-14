@@ -255,7 +255,7 @@ export default function DashboardClient() {
                   <FaUsers className="text-red-500" /> Users
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {/* extracted users table component */}
                 <UsersTable
                   users={users}
