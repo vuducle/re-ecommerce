@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { buildFileUrl } from '../lib/pocketbase';
 import Loading from './ui/Loading';
+import CreateUserDialog from './CreateUserDialog.client';
 
 type Props = {
   users: Array<Record<string, unknown>> | null;
@@ -10,9 +11,22 @@ type Props = {
   error?: string | null;
 };
 
+type MappedUser = {
+  id: string;
+  name: string;
+  email: string;
+  verified: boolean;
+  isAdmin: boolean;
+  avatarUrl?: string | null;
+  lastKnownLocation?: string;
+  created?: string;
+  updated?: string;
+  [key: string]: unknown;
+};
+
 export default function UsersTable({ users, loading, error }: Props) {
   // normalize users early so hooks are always called in the same order
-  const mappedUsers = (users ?? []).map((u) => {
+  const mappedUsers: MappedUser[] = (users ?? []).map((u) => {
     const id = (u.id ?? u._id ?? u.recordId ?? '') as string;
     const name =
       (u.name as string) ||
@@ -68,7 +82,7 @@ export default function UsersTable({ users, loading, error }: Props) {
       lastKnownLocation,
       created,
       updated,
-    };
+    } as MappedUser;
   });
 
   // Pagination state
@@ -86,7 +100,21 @@ export default function UsersTable({ users, loading, error }: Props) {
 
   const start = (page - 1) * pageSize;
   const end = Math.min(start + pageSize, total);
-  const pagedUsers = mappedUsers.slice(start, end);
+  // client-side pagination uses allUsers (localAdded + mappedUsers)
+
+  // dialog state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [localAdded, setLocalAdded] = useState<MappedUser[]>([]);
+
+  const allUsers = React.useMemo(
+    () => [...localAdded, ...mappedUsers],
+    [localAdded, mappedUsers]
+  );
+  const totalAll = allUsers.length;
+  const pagedUsersAll = allUsers.slice(
+    start,
+    Math.min(start + pageSize, totalAll)
+  );
 
   if (loading) return <Loading text="Loading users…" />;
 
@@ -128,6 +156,64 @@ export default function UsersTable({ users, loading, error }: Props) {
           <span className="text-xs text-gray-400">per page</span>
         </div>
 
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="px-3 py-1 rounded bg-rose-700 text-white text-sm"
+          >
+            Create user
+          </button>
+
+          <CreateUserDialog
+            open={createOpen}
+            onClose={() => setCreateOpen(false)}
+            onCreated={(user) => {
+              // normalize incoming user record to MappedUser
+              const asString = (v: unknown) =>
+                typeof v === 'string'
+                  ? v
+                  : v == null
+                  ? ''
+                  : String(v);
+              const mapped: MappedUser = {
+                id: asString(
+                  user.id ?? user._id ?? user.recordId ?? user['id']
+                ),
+                email: asString(user.email ?? user.identity ?? ''),
+                name: asString(
+                  user.name ?? user.fullName ?? user.displayName ?? ''
+                ),
+                profileImage: asString(
+                  user.profileImage ?? user.avatar ?? undefined
+                ),
+                verified: !!(
+                  user.verified ??
+                  user.isVerified ??
+                  false
+                ),
+                isAdmin: !!(user.isAdmin ?? user.admin ?? false),
+                avatarUrl:
+                  typeof (user as Record<string, unknown>)
+                    .profileImage === 'string'
+                    ? ((user as Record<string, unknown>)
+                        .profileImage as string)
+                    : typeof (user as Record<string, unknown>)
+                        .avatar === 'string'
+                    ? ((user as Record<string, unknown>)
+                        .avatar as string)
+                    : undefined,
+                lastKnownLocation: asString(
+                  user.lastKnownLocation ?? user.location ?? ''
+                ),
+                created: asString(user.created ?? ''),
+                updated: asString(user.updated ?? ''),
+              };
+              setLocalAdded((s) => [mapped, ...s]);
+              setCreateOpen(false);
+            }}
+          />
+        </div>
+
         <div className="flex items-center gap-2 text-xs text-gray-300">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -161,7 +247,7 @@ export default function UsersTable({ users, loading, error }: Props) {
 
       {/* Mobile: stacked cards */}
       <div className="space-y-3 mt-4 md:hidden">
-        {pagedUsers.map((mu) => (
+        {pagedUsersAll.map((mu) => (
           <div
             key={mu.id}
             className="bg-[#0b0b0b] border border-[#2a0808] rounded p-3 flex gap-3 items-start"
@@ -247,7 +333,7 @@ export default function UsersTable({ users, loading, error }: Props) {
             </tr>
           </thead>
           <tbody>
-            {pagedUsers.map((mu) => (
+            {pagedUsersAll.map((mu) => (
               <tr key={mu.id} className="border-t border-[#2a0808]">
                 <td className="px-3 py-3 align-middle">
                   {mu.avatarUrl ? (

@@ -9,6 +9,7 @@ import { setAuth } from '../store/slices/authSlice';
 import { Button } from './ui/button';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 
+
 export default function RegisterForm() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
@@ -344,6 +345,7 @@ export default function RegisterForm() {
           </div>
         </form>
 
+        {/* ToastContainer is provided globally by ToastProvider in layout */}
         <div className="mt-5 text-center text-sm text-gray-400">
           <span>Already have an account?</span>
           <a

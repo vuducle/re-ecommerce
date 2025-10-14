@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import type { AppDispatch } from '../store';
 import { Button } from './ui/button';
 
+
 export default function LoginForm() {
   const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState('');
@@ -137,6 +138,7 @@ export default function LoginForm() {
           </div>
         </form>
 
+        {/* ToastContainer is provided globally by ToastProvider in layout */}
         <div className="mt-5 text-center text-sm text-gray-400">
           <span>Don’t have an account?</span>
           <a

@@ -15,6 +15,7 @@ import { cn } from '../lib/utils';
 import { usePathname } from 'next/navigation';
 import type { Category } from '../lib/pocketbase';
 
+
 type Props = {
   categories: Category[];
 };
