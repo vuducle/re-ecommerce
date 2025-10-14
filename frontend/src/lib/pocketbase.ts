@@ -24,7 +24,11 @@ export type PBList<T> = {
   page: number;
   perPage: number;
 };
-
+/**
+ * Fetch categories from the PocketBase API.
+ * @param opts Optional parameters for pagination.
+ * @returns A promise that resolves to a list of categories.
+ */
 export async function getCategories(opts?: {
   perPage?: number;
 }): Promise<PBList<Category>> {
@@ -37,6 +41,11 @@ export async function getCategories(opts?: {
   // PocketBase returns { items: [], totalItems, page, perPage }
   return res.data as PBList<Category>;
 }
+
+/** Fetch a single category by its slug.
+ * @param slug The slug of the category to fetch.
+ * @returns A promise that resolves to the category or null if not found.
+ */
 
 export async function getCategoryBySlug(slug: string) {
   const params = { filter: `slug="${slug}"`, perPage: 1 };
@@ -74,7 +83,12 @@ export type Product = {
   updated?: string;
   [key: string]: unknown;
 };
-
+/**
+ *
+ * @param categoryId The ID of the category to filter products by.
+ * @param opts Optional parameters for pagination.
+ * @returns A promise that resolves to a list of products in the specified category.
+ */
 export async function getProductsByCategory(
   categoryId: string,
   opts?: { perPage?: number }
@@ -124,6 +138,13 @@ export type AppUser = {
   [key: string]: unknown;
 };
 
+/**
+ * Authenticate a user with email and password.
+ * @param email The user's email.
+ * @param password The user's password.
+ * @returns An object containing the authenticated user (or null) and the auth token (or null).
+ * @throws An error if authentication fails.
+ */
 export async function authWithPassword(
   email: string,
   password: string
@@ -211,6 +232,13 @@ export async function logout() {
   }
 }
 
+/**
+ * Builds a URL for accessing a file in the PocketBase storage.
+ * @param filename The name of the file.
+ * @param collection The name of the collection the file belongs to.
+ * @param recordId The ID of the record the file is associated with.
+ * @returns The constructed file URL or undefined if parameters are missing.
+ */
 export function buildFileUrl(
   filename?: string,
   collection = 'users',
