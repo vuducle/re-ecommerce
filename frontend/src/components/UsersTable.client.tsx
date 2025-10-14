@@ -1,6 +1,7 @@
-'use client';
-
+import { useNotification } from '../context/NotificationContext';
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 import Image from 'next/image';
 import { buildFileUrl } from '../lib/pocketbase';
 import Loading from './ui/Loading';
@@ -26,6 +27,57 @@ type MappedUser = {
 };
 
 export default function UsersTable({ users, loading, error }: Props) {
+  const { showNotification } = useNotification();
+  const [userToDelete, setUserToDelete] = useState<MappedUser | null>(
+    null
+  );
+
+  const { user, token } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete || !token || !user) return;
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${token}`,
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ id: userToDelete.id }),
+      });
+
+      if (res.ok) {
+        setLocalAdded((prev) =>
+          prev.filter((u) => u.id !== userToDelete.id)
+        );
+        // Also mark this id as removed so users coming from props are hidden immediately
+        setRemovedIds((prev) => {
+          const next = new Set(prev);
+          next.add(userToDelete.id);
+          return next;
+        });
+        showNotification('User deleted successfully', 'success');
+      } else {
+        const data = await res.json();
+        showNotification(
+          data.error || 'Failed to delete user',
+          'error'
+        );
+      }
+    } catch {
+      showNotification(
+        'An error occurred while deleting the user',
+        'error'
+      );
+    }
+
+    setUserToDelete(null);
+  };
+
   const mappedUsers: MappedUser[] = (users ?? []).map((u) => {
     const id = (u.id ?? u._id ?? u.recordId ?? '') as string;
     const name =
@@ -93,10 +145,17 @@ export default function UsersTable({ users, loading, error }: Props) {
   // dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [localAdded, setLocalAdded] = useState<MappedUser[]>([]);
+  // Track removed user ids to hide them from the combined list (covers users from props)
+  const [removedIds, setRemovedIds] = useState<Set<string>>(
+    new Set()
+  );
 
   const allUsers = React.useMemo(
-    () => [...localAdded, ...mappedUsers],
-    [localAdded, mappedUsers]
+    () =>
+      [...localAdded, ...mappedUsers].filter(
+        (u) => !removedIds.has(u.id)
+      ),
+    [localAdded, mappedUsers, removedIds]
   );
 
   // search state
@@ -185,8 +244,8 @@ export default function UsersTable({ users, loading, error }: Props) {
           </span>
         </button>
       </div>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center flex-wrap gap-2">
           <label className="text-xs text-gray-400">Show</label>
           <select
             value={pageSize}
@@ -351,6 +410,14 @@ export default function UsersTable({ users, loading, error }: Props) {
                   <span>Updated: {mu.updated}</span>
                 ) : null}
               </div>
+              <div className="mt-2">
+                <button
+                  onClick={() => setUserToDelete(mu)}
+                  className="bg-red-500 p-2 border rounded-xl text-white hover:text-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -370,6 +437,7 @@ export default function UsersTable({ users, loading, error }: Props) {
               <th className="px-3 py-2">Created</th>
               <th className="px-3 py-2">Updated</th>
               <th className="px-3 py-2">ID</th>
+              <th className="px-3 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -434,6 +502,14 @@ export default function UsersTable({ users, loading, error }: Props) {
                 <td className="px-3 py-3 align-middle text-xs text-gray-500 font-mono">
                   {mu.id}
                 </td>
+                <td className="px-3 py-3 align-middle">
+                  <button
+                    onClick={() => setUserToDelete(mu)}
+                    className="bg-red-500 p-2 border rounded-xl text-white hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -464,6 +540,34 @@ export default function UsersTable({ users, loading, error }: Props) {
               className="object-contain"
               unoptimized
             />
+          </div>
+        </div>
+      )}
+
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white">
+              Delete User
+            </h3>
+            <p className="mt-2 text-sm text-gray-300">
+              Are you sure you want to delete the user{' '}
+              {userToDelete.name}?
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setUserToDelete(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 rounded-md hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteUser}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -124,7 +124,7 @@ export default function DashboardClient() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto p-8 bg-[#0a0a0a] border border-[#2a0808] shadow-[0_0_40px_rgba(200,16,30,0.15)] rounded-lg mt-10 mb-10">
+    <div className="max-w-7xl mx-auto p-8 bg-[#0a0a0a] border border-[#2a0808] shadow-[0_0_40px_rgba(200,16,30,0.15)] rounded-lg mt-10 mb-10">
       {/* subtle outer vignette */}
       <div className="flex items-center gap-6 mb-8 pb-6 border-b border-[#2a0808]">
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#0b0b0b] to-[#181818] overflow-hidden ring-4 ring-[#c8102e]/60 shadow-lg">

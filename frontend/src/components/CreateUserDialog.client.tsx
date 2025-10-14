@@ -6,7 +6,7 @@ import pb from '../lib/pocketbase';
 import { Button } from './ui/button';
 import Loading from './ui/Loading';
 import { useNotification } from '../context/NotificationContext';
-
+import { Checkbox } from '@/components/ui/checkbox';
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -232,7 +232,7 @@ export default function CreateUserDialog({
                   setEmailError(null);
                 }}
                 type="email"
-                placeholder="you@domain.com"
+                placeholder="karina_aespa@kpop.com"
                 required
               />
               {emailError && (
@@ -251,7 +251,7 @@ export default function CreateUserDialog({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 type="text"
-                placeholder="Name"
+                placeholder="Julia Nguyễn"
               />
             </div>
 
@@ -318,11 +318,10 @@ export default function CreateUserDialog({
             </div>
 
             <div className="flex items-center gap-3">
-              <input
+              <Checkbox
                 id="isAdmin"
-                type="checkbox"
                 checked={isAdmin}
-                onChange={(e) => setIsAdmin(e.target.checked)}
+                onCheckedChange={(val) => setIsAdmin(Boolean(val))}
                 className="accent-rose-500"
               />
               <label
