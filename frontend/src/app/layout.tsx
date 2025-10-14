@@ -3,6 +3,8 @@ import { Geist, Geist_Mono, Orbitron } from 'next/font/google';
 import './globals.css';
 import Header from '../components/Header';
 import ReduxProvider from '../components/ReduxProvider.client';
+import { NotificationProvider } from '../context/NotificationContext';
+import Notification from '../components/Notification';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,10 +38,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased`}
       >
         <ReduxProvider>
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
+          <NotificationProvider>
+            <Notification />
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+            </div>
+          </NotificationProvider>
         </ReduxProvider>
       </body>
     </html>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { buildFileUrl } from '../lib/pocketbase';
 import Loading from './ui/Loading';
 import CreateUserDialog from './CreateUserDialog.client';
@@ -25,7 +26,6 @@ type MappedUser = {
 };
 
 export default function UsersTable({ users, loading, error }: Props) {
-  // normalize users early so hooks are always called in the same order
   const mappedUsers: MappedUser[] = (users ?? []).map((u) => {
     const id = (u.id ?? u._id ?? u.recordId ?? '') as string;
     const name =
@@ -68,7 +68,6 @@ export default function UsersTable({ users, loading, error }: Props) {
     const avatarUrl = profileImage
       ? buildFileUrl(profileImage, 'users', id)
       : null;
-
     const lastKnownLocation =
       (u.lastKnownLocation as string) || (u.location as string) || '';
 
@@ -85,14 +84,13 @@ export default function UsersTable({ users, loading, error }: Props) {
     } as MappedUser;
   });
 
-  // Pagination state
+  // Pagination
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
   const total = mappedUsers.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  // Ensure current page is within bounds when pageSize or total changes
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
     if (page < 1) setPage(1);
@@ -100,7 +98,6 @@ export default function UsersTable({ users, loading, error }: Props) {
 
   const start = (page - 1) * pageSize;
   const end = Math.min(start + pageSize, total);
-  // client-side pagination uses allUsers (localAdded + mappedUsers)
 
   // dialog state
   const [createOpen, setCreateOpen] = useState(false);
@@ -116,6 +113,18 @@ export default function UsersTable({ users, loading, error }: Props) {
     Math.min(start + pageSize, totalAll)
   );
 
+  // Lightbox state
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxAlt, setLightboxAlt] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxUrl(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   if (loading) return <Loading text="Loading users…" />;
 
   if (error)
@@ -129,7 +138,7 @@ export default function UsersTable({ users, loading, error }: Props) {
     return (
       <div className="text-sm text-gray-300">No users found.</div>
     );
-  // pagination controls will be rendered above the list/table
+
   const handlePageSizeChange = (value: number) => {
     setPageSize(value);
     setPage(1);
@@ -139,7 +148,21 @@ export default function UsersTable({ users, loading, error }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 mt-3 flex-wrap">
+      <div className="mb-4 julia-nguyen">
+        <button
+          onClick={() => setCreateOpen(true)}
+          aria-label="Create user"
+          className="inline-flex items-center gap-3 rounded-md bg-gradient-to-b from-rose-700 to-rose-900 px-3 py-1 text-sm font-semibold text-white shadow-md ring-1 ring-rose-900/40 hover:from-rose-600 hover:to-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+        >
+          <span className="flex items-center justify-center w-6 h-6 bg-black bg-opacity-40 rounded-sm border border-rose-900/60">
+            +
+          </span>
+          <span className="uppercase tracking-wider drop-shadow-sm">
+            Create user
+          </span>
+        </button>
+      </div>
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-400">Show</label>
           <select
@@ -154,64 +177,6 @@ export default function UsersTable({ users, loading, error }: Props) {
             <option value={50}>50</option>
           </select>
           <span className="text-xs text-gray-400">per page</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="px-3 py-1 rounded bg-rose-700 text-white text-sm"
-          >
-            Create user
-          </button>
-
-          <CreateUserDialog
-            open={createOpen}
-            onClose={() => setCreateOpen(false)}
-            onCreated={(user) => {
-              // normalize incoming user record to MappedUser
-              const asString = (v: unknown) =>
-                typeof v === 'string'
-                  ? v
-                  : v == null
-                  ? ''
-                  : String(v);
-              const mapped: MappedUser = {
-                id: asString(
-                  user.id ?? user._id ?? user.recordId ?? user['id']
-                ),
-                email: asString(user.email ?? user.identity ?? ''),
-                name: asString(
-                  user.name ?? user.fullName ?? user.displayName ?? ''
-                ),
-                profileImage: asString(
-                  user.profileImage ?? user.avatar ?? undefined
-                ),
-                verified: !!(
-                  user.verified ??
-                  user.isVerified ??
-                  false
-                ),
-                isAdmin: !!(user.isAdmin ?? user.admin ?? false),
-                avatarUrl:
-                  typeof (user as Record<string, unknown>)
-                    .profileImage === 'string'
-                    ? ((user as Record<string, unknown>)
-                        .profileImage as string)
-                    : typeof (user as Record<string, unknown>)
-                        .avatar === 'string'
-                    ? ((user as Record<string, unknown>)
-                        .avatar as string)
-                    : undefined,
-                lastKnownLocation: asString(
-                  user.lastKnownLocation ?? user.location ?? ''
-                ),
-                created: asString(user.created ?? ''),
-                updated: asString(user.updated ?? ''),
-              };
-              setLocalAdded((s) => [mapped, ...s]);
-              setCreateOpen(false);
-            }}
-          />
         </div>
 
         <div className="flex items-center gap-2 text-xs text-gray-300">
@@ -254,12 +219,23 @@ export default function UsersTable({ users, loading, error }: Props) {
           >
             <div className="flex-shrink-0">
               {mu.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={mu.avatarUrl}
-                  alt={mu.name || 'avatar'}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLightboxUrl(mu.avatarUrl ?? null);
+                    setLightboxAlt(mu.name ?? 'avatar');
+                  }}
+                  className="rounded-full overflow-hidden"
+                >
+                  <Image
+                    src={mu.avatarUrl}
+                    alt={mu.name || 'Avatar - Julia Nguyen ist UwU'}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover"
+                    unoptimized
+                  />
+                </button>
               ) : (
                 <div className="w-12 h-12 rounded-full bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
                   RE
@@ -337,12 +313,23 @@ export default function UsersTable({ users, loading, error }: Props) {
               <tr key={mu.id} className="border-t border-[#2a0808]">
                 <td className="px-3 py-3 align-middle">
                   {mu.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={mu.avatarUrl}
-                      alt={mu.name || 'avatar'}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLightboxUrl(mu.avatarUrl ?? null);
+                        setLightboxAlt(mu.name ?? 'avatar');
+                      }}
+                      className="rounded-full overflow-hidden cursor-pointer"
+                    >
+                      <Image
+                        src={mu.avatarUrl}
+                        alt={mu.name || 'avatar'}
+                        width={40}
+                        height={40}
+                        className="rounded-full h-12 w-12 object-cover"
+                        unoptimized
+                      />
+                    </button>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
                       RE
@@ -388,6 +375,34 @@ export default function UsersTable({ users, loading, error }: Props) {
           </tbody>
         </table>
       </div>
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            type="button"
+            aria-label="Close"
+            className="absolute top-4 right-4 text-white text-2xl"
+            onClick={() => setLightboxUrl(null)}
+          >
+            ×
+          </button>
+          <div
+            className="relative w-full max-w-3xl h-[80vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={lightboxUrl}
+              alt={lightboxAlt || 'Lightbox Image'}
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

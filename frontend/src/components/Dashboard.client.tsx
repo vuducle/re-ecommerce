@@ -7,10 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { clearAuth } from '../store/slices/authSlice';
-import pb, {
-  logout as pbLogout,
-  buildFileUrl,
-} from '../lib/pocketbase';
+import pb, { buildFileUrl } from '../lib/pocketbase';
 import UsersTable from './UsersTable.client';
 import {
   FaUsers,
@@ -182,21 +179,7 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      <div className="flex justify-end mb-8">
-        <Button
-          onClick={async () => {
-            try {
-              await pbLogout();
-            } finally {
-              dispatch(clearAuth());
-              router.push('/');
-            }
-          }}
-          className="bg-gradient-to-r from-[#7f0b10] to-[#c8102e] text-white hover:from-[#c8102e] hover:to-[#7f0b10] shadow-[0_10px_30px_rgba(200,16,30,0.18)] border border-[#7f0b10] uppercase tracking-wider font-bold py-3 px-6"
-        >
-          Logout
-        </Button>
-      </div>
+      <div className="flex justify-end mb-8"></div>
       <div className="mt-8">
         <div className="flex gap-4 flex-wrap mb-8 border-b border-[#2a0808] pb-4">
           <TabButton

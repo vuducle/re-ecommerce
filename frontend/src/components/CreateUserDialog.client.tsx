@@ -5,7 +5,7 @@ import Image from 'next/image';
 import pb from '../lib/pocketbase';
 import { Button } from './ui/button';
 import Loading from './ui/Loading';
-
+import { useNotification } from '../context/NotificationContext';
 
 type Props = {
   open: boolean;
@@ -39,6 +39,7 @@ export default function CreateUserDialog({
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     if (!profileImage) {
@@ -145,6 +146,7 @@ export default function CreateUserDialog({
         throw new Error(`create user failed: ${res.status}`);
 
       const created = res.data;
+      showNotification('User created successfully', 'success');
       onCreated?.(created);
       onClose();
     } catch (err: unknown) {
@@ -176,6 +178,7 @@ export default function CreateUserDialog({
           }
         }
       } else setError(maybe.message ?? String(err));
+      showNotification(maybe.message ?? String(err), 'error');
     } finally {
       setLoading(false);
     }

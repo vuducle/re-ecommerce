@@ -7,7 +7,7 @@ import { authWithPassword, AppUser } from '../lib/pocketbase';
 import { useRouter } from 'next/navigation';
 import type { AppDispatch } from '../store';
 import { Button } from './ui/button';
-
+import { useNotification } from '../context/NotificationContext';
 
 export default function LoginForm() {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,6 +17,7 @@ export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   // const [remember, setRemember] = useState(true);
   const router = useRouter();
+  const { showNotification } = useNotification();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +41,7 @@ export default function LoginForm() {
         } else {
           router.push('/');
         }
+        showNotification('Signed in successfully', 'success');
       } else {
         // fallback: mock login for dev if no API
         if (
@@ -72,6 +74,7 @@ export default function LoginForm() {
           ? (err as { message?: string }).message
           : String(err);
       setError(msg || 'Login failed');
+      showNotification(msg || 'Login failed', 'error');
     } finally {
       setLoading(false);
     }

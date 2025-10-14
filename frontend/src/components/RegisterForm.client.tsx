@@ -8,7 +8,7 @@ import pb, { authWithPassword } from '../lib/pocketbase';
 import { setAuth } from '../store/slices/authSlice';
 import { Button } from './ui/button';
 import { FaCloudUploadAlt } from 'react-icons/fa';
-
+import { useNotification } from '../context/NotificationContext';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -33,6 +33,7 @@ export default function RegisterForm() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { showNotification } = useNotification();
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files && e.target.files[0];
@@ -145,6 +146,7 @@ export default function RegisterForm() {
 
       // navigate to dashboard
       router.push('/profile');
+      showNotification('Account created successfully', 'success');
     } catch (err: unknown) {
       const maybe = err as {
         response?: { data?: unknown };
@@ -153,6 +155,7 @@ export default function RegisterForm() {
       if (maybe.response?.data)
         setError(JSON.stringify(maybe.response.data));
       else setError(maybe.message ?? String(err));
+      showNotification(maybe.message ?? String(err), 'error');
     } finally {
       setLoading(false);
     }

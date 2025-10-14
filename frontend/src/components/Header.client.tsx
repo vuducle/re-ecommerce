@@ -14,7 +14,7 @@ import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 import { usePathname } from 'next/navigation';
 import type { Category } from '../lib/pocketbase';
-
+import { useNotification } from '../context/NotificationContext';
 
 type Props = {
   categories: Category[];
@@ -38,6 +38,7 @@ export default function HeaderClient({ categories }: Props) {
   // theme is forced to dark globally
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -266,6 +267,10 @@ export default function HeaderClient({ categories }: Props) {
                               setUserMenuOpen(false);
                               try {
                                 await pbLogout();
+                                showNotification(
+                                  'Logged out successfully',
+                                  'success'
+                                );
                               } finally {
                                 dispatch(clearAuth());
                                 router.push('/');
@@ -401,7 +406,7 @@ export default function HeaderClient({ categories }: Props) {
                       </Link>
                     </>
                   ) : (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0b0b0b]">
                         {auth.user?.profileImage ? (
                           // eslint-disable-next-line @next/next/no-img-element
