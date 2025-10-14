@@ -90,12 +90,14 @@ export default function UsersTable({ users, loading, error }: Props) {
 
   const start = (page - 1) * pageSize;
 
-
   // dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [localAdded, setLocalAdded] = useState<MappedUser[]>([]);
 
-  const allUsers = React.useMemo(() => [...localAdded, ...mappedUsers], [localAdded, mappedUsers]);
+  const allUsers = React.useMemo(
+    () => [...localAdded, ...mappedUsers],
+    [localAdded, mappedUsers]
+  );
 
   // search state
   const [query, setQuery] = useState<string>('');
@@ -203,13 +205,16 @@ export default function UsersTable({ users, loading, error }: Props) {
               type="search"
               placeholder="Search name, email, location"
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
               className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-64"
             />
           </div>
         </div>
 
-  <div className="flex items-center gap-2 text-xs text-gray-300">
+        <div className="flex items-center gap-2 text-xs text-gray-300">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
@@ -244,15 +249,23 @@ export default function UsersTable({ users, loading, error }: Props) {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(user) => {
-          const asString = (v: unknown) => (typeof v === 'string' ? v : v == null ? '' : String(v));
+          const asString = (v: unknown) =>
+            typeof v === 'string' ? v : v == null ? '' : String(v);
           const mapped: MappedUser = {
-            id: asString(user.id ?? user._id ?? user.recordId ?? user['id']),
+            id: asString(
+              user.id ?? user._id ?? user.recordId ?? user['id']
+            ),
             email: asString(user.email ?? user.identity ?? ''),
-            name: asString(user.name ?? user.fullName ?? user.displayName ?? ''),
+            name: asString(
+              user.name ?? user.fullName ?? user.displayName ?? ''
+            ),
             verified: !!(user.verified ?? user.isVerified ?? false),
             isAdmin: !!(user.isAdmin ?? user.admin ?? false),
-            avatarUrl: (user as Record<string, unknown>).profileImage as string | undefined,
-            lastKnownLocation: asString(user.lastKnownLocation ?? user.location ?? ''),
+            avatarUrl: (user as Record<string, unknown>)
+              .profileImage as string | undefined,
+            lastKnownLocation: asString(
+              user.lastKnownLocation ?? user.location ?? ''
+            ),
             created: asString(user.created ?? ''),
             updated: asString(user.updated ?? ''),
           };
