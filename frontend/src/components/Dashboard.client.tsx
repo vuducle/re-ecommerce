@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 // clearAuth imported but not used in this view; keep for future use
 import pb, { buildFileUrl } from '../lib/pocketbase';
 import UsersTable from './UsersTable.client';
+import ProductsTable from './ProductsTable.client';
 import {
   FaUsers,
   FaBox,
@@ -30,6 +31,13 @@ export default function DashboardClient() {
   > | null>(null);
   const [loadingUsers, setLoadingUsers] = React.useState(false);
   const [usersError, setUsersError] = React.useState<string | null>(
+    null
+  );
+  const [products, setProducts] = React.useState<Array<
+    Record<string, unknown>
+  > | null>(null);
+  const [loadingProducts, setLoadingProducts] = React.useState(false);
+  const [productsError, setProductsError] = React.useState<string | null>(
     null
   );
 
@@ -83,11 +91,38 @@ export default function DashboardClient() {
     }
   }, [auth.token, auth.user?.id, auth.user?.isAdmin]);
 
+  const fetchProducts = React.useCallback(async () => {
+    setLoadingProducts(true);
+    setProductsError(null);
+    try {
+      const apiRes = await fetch('/api/admin/products');
+      if (!apiRes.ok) {
+        const txt = await apiRes.text();
+        throw new Error(`admin api: ${apiRes.status} ${txt}`);
+      }
+      const json = await apiRes.json();
+      setProducts(
+        (json.items ?? json) as Array<Record<string, unknown>>
+      );
+    } catch (err: unknown) {
+      const maybeErr = err as { response?: { data?: unknown } };
+      if (maybeErr.response?.data) {
+        setProductsError(JSON.stringify(maybeErr.response.data));
+      } else {
+        setProductsError(String(err));
+      }
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     if (tab === 'users') {
       fetchUsers();
+    } else if (tab === 'products') {
+      fetchProducts();
     }
-  }, [tab, fetchUsers]);
+  }, [tab, fetchUsers, fetchProducts]);
 
   if (!auth.user) return null;
 
@@ -232,9 +267,12 @@ export default function DashboardClient() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-base text-red-200/70">
-                  Placeholder — add product creation form here later.
-                </div>
+                <ProductsTable
+                  products={products}
+                  loading={loadingProducts}
+                  error={productsError}
+                  onProductUpdated={fetchProducts}
+                />
               </CardContent>
             </Card>
           )}
