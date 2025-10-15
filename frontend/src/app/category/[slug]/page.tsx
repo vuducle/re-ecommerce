@@ -144,9 +144,19 @@ export default async function CategoryPage({ params }: Props) {
         <div className="max-w-5xl mx-auto px-4 mb-8">
           <h2 className="text-2xl font-semibold mb-4">Products</h2>
           {products.items.length === 0 ? (
-            <p className="text-muted-foreground">
-              No products found for this category.
-            </p>
+            <>
+              <div className="flex justify-center items-center flex-col gap-4 text-zinc-400 bg-[#0a0a0a] border border-[#2a0808] shadow-[0_0_40px_rgba(200,16,30,0.15)] rounded-lg p-10">
+                <Image
+                  src="/img/leon-gif.gif"
+                  alt="No products"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  width={200}
+                  height={200}
+                  className="rounded-lg h-30 object-contain"
+                />
+                <p>No products found for this category.</p>
+              </div>
+            </>
           ) : (
             <ul className="grid grid-cols-1 sm:grid-cols-1 gap-4 w-full">
               {products.items.map((p: Product) => {

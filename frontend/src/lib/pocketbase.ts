@@ -97,7 +97,6 @@ export async function getProductsByCategory(
   categoryId: string,
   opts?: { perPage?: number }
 ) {
-  // try common relational field `category` referencing the category id
   const perPage = opts?.perPage ?? 50;
   const tryFilters = [
     `category = "${categoryId}"`,
@@ -105,12 +104,16 @@ export async function getProductsByCategory(
   ];
 
   for (const filter of tryFilters) {
-    const params = { filter, perPage };
-    const res = await pb.get('/api/collections/products/records', {
-      params,
-    });
-    const data = res.data as PBList<Product>;
-    if (data.items && data.items.length > 0) return data;
+    try {
+      const params = { filter, perPage };
+      const res = await pb.get('/api/collections/products/records', {
+        params,
+      });
+      const data = res.data as PBList<Product>;
+      if (data.items && data.items.length > 0) return data;
+    } catch (err) {
+      console.error('Error fetching products for category', categoryId, err);
+    }
   }
 
   // fallback: return empty list

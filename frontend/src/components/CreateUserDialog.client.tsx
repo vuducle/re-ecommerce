@@ -1,12 +1,22 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
-import pb from '../lib/pocketbase';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import Loading from './ui/Loading';
+import { Checkbox } from './ui/checkbox';
 import { useNotification } from '../context/NotificationContext';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState, useEffect } from 'react';
+import { pb } from '../lib/pocketbase';
+import { useMemo } from 'react';
+import Image from 'next/image';
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -187,228 +197,179 @@ export default function CreateUserDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      <div
-        onClick={onClose}
-        className={`absolute inset-0 bg-black/60`}
-      />
-      <div className="relative w-full max-w-lg mx-4 rounded-lg bg-gradient-to-b from-[#0b0b0b] to-[#141414] border border-white/6 overflow-hidden shadow-xl z-[10000]">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#ffdede]/10 flex items-center justify-center text-[#ffdede] font-orbitron text-sm">
-              RE
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0b0b0b] border-[#2a0808]">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            Create User
+          </DialogTitle>
+          <DialogDescription>
+            Create a new user here. Click save when you're done.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label
+                htmlFor="name"
+                className="text-right text-gray-300"
+              >
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                placeholder='e.g. "Karina" or "Ada Wong"'
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+              />
             </div>
-            <span className="font-orbitron text-sm text-[#ffdede]">
-              Create user
-            </span>
-          </div>
-          <div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-md text-gray-200 hover:bg-white/3"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-
-        <div className="p-4">
-          {loading ? <Loading text="Creating user…" /> : null}
-          {error && (
-            <div className="text-sm text-yellow-300 mb-2">
-              {error}
-            </div>
-          )}
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-300">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label
+                htmlFor="email"
+                className="text-right text-gray-300"
+              >
                 Email
-              </label>
-              <input
-                className="mt-2 w-full rounded-lg bg-[#0b0b0b] text-white border border-white/6 px-3 py-2"
+              </Label>
+              <Input
+                id="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setEmailError(null);
-                }}
-                type="email"
-                placeholder="karina_aespa@kpop.com"
-                required
+                onChange={(e) => setEmail(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+                placeholder="karina@aespa.com"
               />
               {emailError && (
-                <div className="text-xs text-yellow-300 mt-1">
+                <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
                   {emailError}
                 </div>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm text-gray-300">
-                Name
-              </label>
-              <input
-                className="mt-2 w-full rounded-lg bg-[#0b0b0b] text-white border border-white/6 px-3 py-2"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                type="text"
-                placeholder="Julia Nguyễn"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-300">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label
+                htmlFor="password"
+                className="text-right text-gray-300"
+              >
                 Password
-              </label>
-              <input
-                className="mt-2 w-full rounded-lg bg-[#0b0b0b] text-white border border-white/6 px-3 py-2"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setPasswordError(null);
-                }}
+              </Label>
+              <Input
+                id="password"
                 type="password"
-                placeholder="••••••••"
-                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
               />
               {passwordError ? (
-                <div className="text-xs text-yellow-300 mt-1">
+                <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
                   {passwordError}
                 </div>
               ) : (
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="col-start-2 col-span-3 text-xs text-gray-500 mt-1">
                   Password must be 8+ chars and include letters &
                   numbers.
                 </div>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm text-gray-300">
-                Confirm password
-              </label>
-              <input
-                className="mt-2 w-full rounded-lg bg-[#0b0b0b] text-white border border-white/6 px-3 py-2"
-                value={passwordConfirm}
-                onChange={(e) => {
-                  setPasswordConfirm(e.target.value);
-                  setPasswordConfirmError(null);
-                }}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label
+                htmlFor="passwordConfirm"
+                className="text-right text-gray-300"
+              >
+                Confirm Password
+              </Label>
+              <Input
+                id="passwordConfirm"
                 type="password"
-                placeholder="Confirm password"
-                required
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
               />
               {passwordConfirmError && (
-                <div className="text-xs text-yellow-300 mt-1">
+                <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
                   {passwordConfirmError}
                 </div>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm text-gray-300">
-                Last known location
-              </label>
-              <input
-                className="mt-2 w-full rounded-lg bg-[#0b0b0b] text-white border border-white/6 px-3 py-2"
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label
+                htmlFor="lastKnownLocation"
+                className="text-right text-gray-300"
+              >
+                Last Known Location
+              </Label>
+              <Input
+                id="lastKnownLocation"
+                placeholder="Raccoon City"
                 value={lastKnownLocation}
                 onChange={(e) => setLastKnownLocation(e.target.value)}
-                type="text"
-                placeholder="City, Country"
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
               />
             </div>
-
-            <div className="flex items-center gap-3">
-              <Checkbox
-                id="isAdmin"
-                checked={isAdmin}
-                onCheckedChange={(val) => setIsAdmin(Boolean(val))}
-                className="accent-rose-500"
-              />
-              <label
-                htmlFor="isAdmin"
-                className="text-sm text-gray-300"
-              >
-                Admin user
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-300 mb-2">
-                Profile image
-              </label>
-              <div className="flex items-center gap-4">
-                <div>
-                  {previewUrl ? (
-                    // next/image with unoptimized for blob URLs
-                    <Image
-                      src={previewUrl}
-                      alt="preview"
-                      width={80}
-                      height={80}
-                      className="rounded-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-full bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
-                      RE
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <input
-                    id="cu_profileImage"
-                    type="file"
-                    accept="image/*"
-                    onChange={onFileChange}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="cu_profileImage"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-white/8 bg-[#0b0b0b] text-sm text-gray-300 cursor-pointer hover:border-white/20"
-                  >
-                    <span>
-                      {profileImage
-                        ? profileImage.name
-                        : 'Upload an image'}
-                    </span>
-                  </label>
-                  {fileError && (
-                    <div className="text-xs text-yellow-300 mt-2">
-                      {fileError}
-                    </div>
-                  )}
-                  <div className="text-xs text-gray-500 mt-2">
-                    Max 2 MB. Square images look best.
-                  </div>
-                </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-start-2 col-span-3 flex items-center gap-2">
+                <Checkbox
+                  id="isAdmin"
+                  checked={isAdmin}
+                  onCheckedChange={(val) => setIsAdmin(Boolean(val))}
+                />
+                <Label htmlFor="isAdmin" className="text-gray-300">
+                  Admin
+                </Label>
               </div>
             </div>
-
-            <div className="flex gap-2">
-              <Button
-                type="submit"
-                variant="destructive"
-                className="flex-1"
-                disabled={
-                  loading ||
-                  !!emailError ||
-                  !!passwordError ||
-                  !!fileError
-                }
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label
+                htmlFor="profileImage"
+                className="text-right text-gray-300"
               >
-                {loading ? 'Creating…' : 'Create user'}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-              >
-                Cancel
-              </Button>
+                Profile Image
+              </Label>
+              <div className="col-span-3 flex items-center gap-4">
+                {previewUrl ? (
+                  <Image
+                    src={previewUrl}
+                    alt="preview"
+                    width={80}
+                    height={80}
+                    className="rounded-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
+                    RE
+                  </div>
+                )}
+                <Input
+                  id="profileImage"
+                  type="file"
+                  onChange={onFileChange}
+                  className="bg-[#0b0b0b] border-gray-800"
+                />
+              </div>
+              {fileError && (
+                <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
+                  {fileError}
+                </div>
+              )}
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          </div>
+          {error && (
+            <div className="text-sm text-yellow-300 mb-2">
+              {error}
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" onClick={onClose} variant="outline">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-gradient-to-b from-rose-700 to-rose-900 text-white"
+            >
+              Create User
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,3 +1,4 @@
+import CreateCategoryDialog from './CreateCategoryDialog.client';
 import { useNotification } from '../context/NotificationContext';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -34,6 +35,7 @@ export default function CategoriesTable({
 }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const mappedCategories: MappedCategory[] = (categories ?? []).map(
     (c) => {
@@ -143,6 +145,9 @@ export default function CategoriesTable({
     <Card className="bg-transparent border-none">
       <CardHeader>
         <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center flex-wrap gap-2">
+            <Button onClick={() => setCreateOpen(true)} className="bg-gradient-to-b from-rose-700 to-rose-900 text-white">Create Category</Button>
+          </div>
           <div className="flex items-center flex-wrap gap-2">
             <label className="text-xs text-gray-400">Show</label>
             <select
@@ -264,6 +269,13 @@ export default function CategoriesTable({
         close={() => setLightboxOpen(false)}
         index={lightboxIndex}
         slides={pagedCategoriesAll.flatMap(c => c.imageUrl ? [{ src: c.imageUrl }] : [])}
+      />
+      <CreateCategoryDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(newCategory) => {
+          onCategoryUpdated?.();
+        }}
       />
     </Card>
   );
