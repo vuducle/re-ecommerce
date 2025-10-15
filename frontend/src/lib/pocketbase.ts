@@ -14,6 +14,10 @@ export type Category = {
   id: string;
   name: string;
   slug: string;
+  image: string; // assuming image is stored as a URL
+  description?: string;
+  parent?: string; // self-referencing for sub-categories
+  [key: string]: unknown; // for any additional fields
   created: string;
   updated?: string;
 };

@@ -6,6 +6,7 @@ import {
   Product,
 } from '@/lib/pocketbase';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const PB_URL =
   process.env.NEXT_PUBLIC_POCKETBASE_URL ?? 'http://127.0.0.1:8090';
@@ -42,23 +43,104 @@ export default async function CategoryPage({ params }: Props) {
     );
   }
 
+  // --- new: compute category image URL ---
+  const categoryImage =
+    (category.image &&
+      typeof category.image === 'string' &&
+      category.image) ||
+    null;
+  const categoryImageUrl = categoryImage
+    ? categoryImage.startsWith('http')
+      ? categoryImage
+      : `${PB_URL}/api/files/${
+          (category.collectionId as string) ?? 'categories'
+        }/${category.id}/${encodeURIComponent(categoryImage)}`
+    : null;
+  // --- end new ---
+
   const products = await getProductsByCategory(category.id, {
     perPage: 100,
   });
   return (
     <main className="w-full py-12">
       <div className="max-w-5xl mx-auto px-4 mb-8">
-        <header>
-          <h1 className="text-4xl font-extrabold tracking-tight uppercase text-amber-100 drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
-            {category.name}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {category?.slug}
-          </p>
+        {/* New hero header: shadcn-ish, RE4 remake inspired */}
+        <header className="relative rounded-lg overflow-hidden ring-1 ring-white/6 shadow-2xl bg-gradient-to-br from-neutral-900 via-zinc-900 to-black">
+          <div className="relative h-52 sm:h-64 md:h-72 lg:h-80">
+            {categoryImageUrl ? (
+              <>
+                <Image
+                  src={categoryImageUrl}
+                  alt={String(category.name ?? 'Category image')}
+                  fill
+                  className="object-cover brightness-90 contrast-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(30,30,30,0.6)_0%,rgba(0,0,0,0.2)_30%,rgba(0,0,0,0.0)_100%)]" />
+              </>
+            ) : (
+              <div className="h-full w-full bg-gradient-to-br from-zinc-800 via-zinc-900 to-black flex items-center justify-center">
+                <div className="text-sm text-zinc-300">
+                  No image available
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative px-6 pb-6 pt-4 sm:pt-6">
+            <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-end gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center rounded-full bg-amber-600/10 px-2 py-1 text-xs font-medium text-amber-300 ring-1 ring-amber-700/20">
+                    CATEGORY
+                  </span>
+                  <span className="text-xs text-zinc-400">
+                    {category?.slug}
+                  </span>
+                </div>
+
+                <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight uppercase text-amber-100 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] leading-tight">
+                  {category.name}
+                </h1>
+
+                {category.description && (
+                  <p className="mt-2 max-w-2xl text-sm text-zinc-300/90 line-clamp-3">
+                    {category.description}
+                  </p>
+                )}
+              </div>
+
+              <div className="w-full sm:w-auto flex-shrink-0">
+                <div className="flex gap-2 items-center">
+                  <Button
+                    asChild
+                    className="inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-2xl
+                               bg-gradient-to-b from-rose-800 via-rose-700 to-rose-600 hover:from-rose-700 hover:to-rose-500
+                               ring-1 ring-rose-900/30 active:scale-95"
+                  >
+                    <Link
+                      href={`/category/`}
+                      aria-label={`Browse ${category.name}`}
+                    >
+                      Browse
+                    </Link>
+                  </Button>
+
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="inline-flex items-center rounded-md px-4 py-2 text-sm text-zinc-200 border-zinc-700 hover:bg-zinc-800/40"
+                  >
+                    <a href="#products">View products</a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </header>
       </div>
 
-      <section className="w-full">
+      <section id="products" className="w-full">
         <div className="max-w-5xl mx-auto px-4 mb-8">
           <h2 className="text-2xl font-semibold mb-4">Products</h2>
           {products.items.length === 0 ? (

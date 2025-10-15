@@ -10,6 +10,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import pb, { buildFileUrl } from '../lib/pocketbase';
 import UsersTable from './UsersTable.client';
 import ProductsTable from './ProductsTable.client';
+import CategoriesTable from './CategoriesTable.client';
 import {
   FaUsers,
   FaBox,
@@ -38,6 +39,13 @@ export default function DashboardClient() {
   > | null>(null);
   const [loadingProducts, setLoadingProducts] = React.useState(false);
   const [productsError, setProductsError] = React.useState<string | null>(
+    null
+  );
+  const [categories, setCategories] = React.useState<Array<
+    Record<string, unknown>
+  > | null>(null);
+  const [loadingCategories, setLoadingCategories] = React.useState(false);
+  const [categoriesError, setCategoriesError] = React.useState<string | null>(
     null
   );
 
@@ -116,13 +124,40 @@ export default function DashboardClient() {
     }
   }, []);
 
+  const fetchCategories = React.useCallback(async () => {
+    setLoadingCategories(true);
+    setCategoriesError(null);
+    try {
+      const apiRes = await fetch('/api/admin/categories');
+      if (!apiRes.ok) {
+        const txt = await apiRes.text();
+        throw new Error(`admin api: ${apiRes.status} ${txt}`);
+      }
+      const json = await apiRes.json();
+      setCategories(
+        (json.items ?? json) as Array<Record<string, unknown>>
+      );
+    } catch (err: unknown) {
+      const maybeErr = err as { response?: { data?: unknown } };
+      if (maybeErr.response?.data) {
+        setCategoriesError(JSON.stringify(maybeErr.response.data));
+      } else {
+        setCategoriesError(String(err));
+      }
+    } finally {
+      setLoadingCategories(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     if (tab === 'users') {
       fetchUsers();
     } else if (tab === 'products') {
       fetchProducts();
+    } else if (tab === 'categories') {
+      fetchCategories();
     }
-  }, [tab, fetchUsers, fetchProducts]);
+  }, [tab, fetchUsers, fetchProducts, fetchCategories]);
 
   if (!auth.user) return null;
 
@@ -285,9 +320,12 @@ export default function DashboardClient() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-base text-red-200/70">
-                  Placeholder — add category creation form here later.
-                </div>
+                <CategoriesTable
+                  categories={categories}
+                  loading={loadingCategories}
+                  error={categoriesError}
+                  onCategoryUpdated={fetchCategories}
+                />
               </CardContent>
             </Card>
           )}

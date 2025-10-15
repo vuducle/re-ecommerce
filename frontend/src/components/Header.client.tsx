@@ -105,7 +105,7 @@ export default function HeaderClient({ categories }: Props) {
     <>
       <header className="fixed inset-x-0 top-0 z-50 bg-[#070707]/95 backdrop-blur-sm border-b border-white/6">
         {/* thin accent stripe like the RE UI */}
-        <div className="h-1 w-full bg-gradient-to-r via-rose-500 " />
+        <div className="h-1 w-full bg-red-900" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -124,8 +124,7 @@ export default function HeaderClient({ categories }: Props) {
                 RESIDENT E-COMMERCE
               </Link>
             </div>
-
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden md:flex justify-center items-baseline gap-6 flex-grow">
               {DEFAULT_NAV.map((item) => {
                 const active = pathname === item.href;
                 return (
@@ -143,7 +142,7 @@ export default function HeaderClient({ categories }: Props) {
                     {/* active indicator: thicker metallic red bar */}
                     <span
                       className={cn(
-                        'mt-1 h-1 rounded-full bg-gradient-to-r from-rose-500 to-amber-300 transition-all',
+                        'mt-1 h-1 rounded-full bg-red-700 transition-all',
                         active
                           ? 'w-8 opacity-100 shadow-[0_6px_18px_rgba(220,38,38,0.14)]'
                           : 'w-0 opacity-0'
@@ -153,142 +152,152 @@ export default function HeaderClient({ categories }: Props) {
                 );
               })}
 
-              {/* categories inline */}
-              <div className="flex items-center gap-3">
-                {categories.map((c) => {
-                  const activeCat = pathname?.startsWith(
-                    `/category/${c.slug}`
-                  );
-                  return (
-                    <Link
-                      key={c.id}
-                      href={`/category/${c.slug}`}
-                      className={cn(
-                        'text-sm transition-colors inline-flex flex-col items-center',
-                        activeCat
-                          ? 'text-white'
-                          : 'text-gray-300 hover:text-white'
-                      )}
-                    >
-                      <span>{c.name}</span>
-                      <span
-                        className={cn(
-                          'mt-1 h-1 rounded-full bg-red-500 transition-all',
-                          activeCat
-                            ? 'w-6 opacity-100'
-                            : 'w-0 opacity-0'
-                        )}
-                      />
-                    </Link>
-                  );
-                })}
+              {/* categories dropdown */}
+              <div className="relative group flex flex-col items-center">
+                <Link
+                  href="/category"
+                  className={cn(
+                    'text-sm font-bold uppercase tracking-widest transition-colors inline-flex items-center gap-1',
+                    pathname.startsWith('/category')
+                      ? 'text-white'
+                      : 'text-gray-300 hover:text-white'
+                  )}
+                >
+                  <span>Categories</span>
+                  <ChevronDown size={14} />
+                </Link>
+                <span
+                  className={cn(
+                    'mt-1 h-1 rounded-full bg-red-700 transition-all',
+                    pathname.startsWith('/category')
+                      ? 'w-8 opacity-100 shadow-[0_6px_18px_rgba(220,38,38,0.14)]'
+                      : 'w-0 opacity-0'
+                  )}
+                />
+                <div className={cn(
+                  'absolute top-full left-0 pt-2 w-48 bg-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto'
+                )}>
+                  <div className="bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
+                    <div className="py-2">
+                      {categories.map((c) => (
+                        <Link
+                          key={c.id}
+                          href={`/category/${c.slug}`}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                        >
+                          {c.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
+            </nav>
 
-              <div>
-                {!auth.authenticated ? (
-                  <>
-                    <Link href="/login">
-                      <Button
-                        variant="destructive"
-                        className="mr-2 !bg-gradient-to-b from-rose-700 to-rose-600 !border-rose-800 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_12px_30px_rgba(220,38,38,0.12)]"
-                      >
-                        Login
-                      </Button>
-                    </Link>
-                    <Link href="/register">
-                      <Button className="!bg-zinc-800 text-zinc-100 border border-zinc-700">
-                        Register
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <div className="relative" ref={userMenuRef}>
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 px-3 py-1 rounded hover:bg-white/3"
-                      onClick={() => setUserMenuOpen((v) => !v)}
-                      aria-expanded={userMenuOpen}
-                      aria-haspopup="menu"
+            <div className="flex items-center">
+              {!auth.authenticated ? (
+                <>
+                  <Link href="/login">
+                    <Button
+                      variant="destructive"
+                      className="mr-2 !bg-gradient-to-b from-rose-700 to-rose-600 !border-rose-800 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_12px_30px_rgba(220,38,38,0.12)]"
                     >
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0b0b0b]">
-                        {auth.user?.profileImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={buildFileUrl(
-                              auth.user.profileImage,
-                              'users',
-                              auth.user.id
-                            )}
-                            alt={auth.user?.name ?? 'avatar'}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            RE
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-sm text-gray-400">
-                        {auth.user?.name}
-                      </span>
-                      <ChevronDown
-                        size={14}
-                        className="text-gray-300"
-                      />
-                    </button>
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button className="!bg-zinc-800 text-zinc-100 border border-zinc-700">
+                      Register
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 px-3 py-1 rounded hover:bg-white/3"
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0b0b0b]">
+                      {auth.user?.profileImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={buildFileUrl(
+                            auth.user.profileImage,
+                            'users',
+                            auth.user.id
+                          )}
+                          alt={auth.user?.name ?? 'avatar'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          RE
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-400">
+                      {auth.user?.name}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      className="text-gray-300"
+                    />
+                  </button>
 
-                    {userMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
-                        <div className="py-2">
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
+                      <div className="py-2">
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            router.push('/profile');
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                        >
+                          Profile
+                        </button>
+
+                        {auth.user?.isAdmin && (
                           <button
                             onClick={() => {
                               setUserMenuOpen(false);
-                              router.push('/profile');
+                              router.push('/dashboard');
                             }}
                             className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
                           >
-                            Profile
+                            Dashboard
                           </button>
+                        )}
 
-                          {auth.user?.isAdmin && (
-                            <button
-                              onClick={() => {
-                                setUserMenuOpen(false);
-                                router.push('/dashboard');
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
-                            >
-                              Dashboard
-                            </button>
-                          )}
+                        <button
+                          onClick={async () => {
+                            setUserMenuOpen(false);
+                            try {
+                              await pbLogout();
+                              showNotification(
+                                'Logged out successfully',
+                                'success'
+                              );
+                            } finally {
+                              dispatch(clearAuth());
+                              router.push('/');
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                        >
+                          Logout
+                        </button>
 
-                          <button
-                            onClick={async () => {
-                              setUserMenuOpen(false);
-                              try {
-                                await pbLogout();
-                                showNotification(
-                                  'Logged out successfully',
-                                  'success'
-                                );
-                              } finally {
-                                dispatch(clearAuth());
-                                router.push('/');
-                              }
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
-                          >
-                            Logout
-                          </button>
-
-                          <div className="border-t border-rose-900/10 mt-2" />
-                        </div>
+                        <div className="border-t border-rose-900/10 mt-2" />
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </nav>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="md:hidden">
               <button
