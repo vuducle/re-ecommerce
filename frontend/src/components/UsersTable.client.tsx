@@ -1,3 +1,4 @@
+import UpdateUserDialog from './UpdateUserDialog.client';
 import { useNotification } from '../context/NotificationContext';
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
@@ -6,11 +7,13 @@ import Image from 'next/image';
 import { buildFileUrl } from '../lib/pocketbase';
 import Loading from './ui/Loading';
 import CreateUserDialog from './CreateUserDialog.client';
+import { Button } from './ui/button';
 
 type Props = {
   users: Array<Record<string, unknown>> | null;
   loading?: boolean;
   error?: string | null;
+  onUserUpdated?: () => void;
 };
 
 type MappedUser = {
@@ -26,9 +29,17 @@ type MappedUser = {
   [key: string]: unknown;
 };
 
-export default function UsersTable({ users, loading, error }: Props) {
+export default function UsersTable({
+  users,
+  loading,
+  error,
+  onUserUpdated,
+}: Props) {
   const { showNotification } = useNotification();
   const [userToDelete, setUserToDelete] = useState<MappedUser | null>(
+    null
+  );
+  const [userToUpdate, setUserToUpdate] = useState<MappedUser | null>(
     null
   );
 
@@ -333,6 +344,18 @@ export default function UsersTable({ users, loading, error }: Props) {
         }}
       />
 
+      <UpdateUserDialog
+        open={!!userToUpdate}
+        onClose={() => setUserToUpdate(null)}
+        user={userToUpdate}
+        token={token}
+        currentUserId={user?.id || null}
+        onUpdated={(updatedUser) => {
+          onUserUpdated?.();
+          setUserToUpdate(null);
+        }}
+      />
+
       {/* Mobile: stacked cards */}
       <div className="space-y-3 mt-4 md:hidden">
         {pagedUsersAll.map((mu) => (
@@ -410,13 +433,22 @@ export default function UsersTable({ users, loading, error }: Props) {
                   <span>Updated: {mu.updated}</span>
                 ) : null}
               </div>
-              <div className="mt-2">
-                <button
+              <div className="mt-2 flex gap-2">
+                <Button
+                  onClick={() => setUserToUpdate(mu)}
+                  aria-label={`Update ${mu.name}`}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
+                >
+                  Update
+                </Button>
+
+                <Button
                   onClick={() => setUserToDelete(mu)}
-                  className="bg-red-500 p-2 border rounded-xl text-white hover:text-red-700"
+                  aria-label={`Delete ${mu.name}`}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -502,13 +534,22 @@ export default function UsersTable({ users, loading, error }: Props) {
                 <td className="px-3 py-3 align-middle text-xs text-gray-500 font-mono">
                   {mu.id}
                 </td>
-                <td className="px-3 py-3 align-middle">
-                  <button
+                <td className="px-3 py-3 align-middle flex gap-2">
+                  <Button
+                    onClick={() => setUserToUpdate(mu)}
+                    aria-label={`Update ${mu.name}`}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
+                  >
+                    Update
+                  </Button>
+
+                  <Button
                     onClick={() => setUserToDelete(mu)}
-                    className="bg-red-500 p-2 border rounded-xl text-white hover:text-red-700"
+                    aria-label={`Delete ${mu.name}`}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -557,13 +598,15 @@ export default function UsersTable({ users, loading, error }: Props) {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setUserToDelete(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-800 rounded-md hover:bg-gray-700"
+                aria-label="Cancel delete"
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-gray-300 bg-[#0b0b0b] border border-[#2a2a2a] hover:bg-[#141414] focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteUser}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                aria-label="Confirm delete"
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold text-white bg-gradient-to-b from-[#8b0f0f] to-[#3b0000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-red-600/40 transition"
               >
                 Delete
               </button>

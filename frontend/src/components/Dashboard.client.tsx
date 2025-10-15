@@ -33,87 +33,61 @@ export default function DashboardClient() {
     null
   );
 
-  React.useEffect(() => {
-    if (!auth.authenticated) {
-      router.push('/login');
-      return;
-    }
-    if (!auth.user?.isAdmin) {
-      router.push('/');
-    }
-  }, [auth, router]);
-
-  // admin data (categories/orders) will be fetched when forms are implemented later
-
-  React.useEffect(() => {
-    // fetch users when the users tab is active
-    if (tab !== 'users') return;
-
-    let mounted = true;
-    const fetchUsers = async () => {
-      setLoadingUsers(true);
-      setUsersError(null);
-      try {
-        // NOTE: PocketBase view rule may restrict listing users to only the
-        // authenticated user's own record (e.g. `id = @request.auth.id`).
-        // The request below will still be attempted — the backend decides
-        // what to return based on its rules.
-        if (auth.user?.isAdmin) {
-          // Call internal server API which uses admin credentials.
-          const apiRes = await fetch('/api/admin/users', {
-            headers: {
-              Authorization: auth.token ? `Bearer ${auth.token}` : '',
-              'x-user-id': auth.user.id,
-            },
-          });
-          if (!apiRes.ok) {
-            const txt = await apiRes.text();
-            throw new Error(`admin api: ${apiRes.status} ${txt}`);
-          }
-          const json = await apiRes.json();
-          if (!mounted) return;
-          setUsers(
-            (json.items ?? json) as Array<Record<string, unknown>>
-          );
-        } else {
-          const config: Record<string, unknown> = {
-            params: { perPage: 50 },
-          };
-          if ((auth.token ?? null) != null) {
-            config['headers'] = {
-              Authorization: `Bearer ${auth.token}`,
-            } as Record<string, string>;
-          }
-
-          const res = await pb.get(
-            '/api/collections/users/records',
-            config
-          );
-          if (!mounted) return;
-          // pb returns { items: [], totalItems, page, perPage }
-          const data = res.data as {
-            items?: Array<Record<string, unknown>>;
-          };
-          setUsers(data.items ?? []);
+  const fetchUsers = React.useCallback(async () => {
+    setLoadingUsers(true);
+    setUsersError(null);
+    try {
+      if (auth.user?.isAdmin) {
+        const apiRes = await fetch('/api/admin/users', {
+          headers: {
+            Authorization: auth.token ? `Bearer ${auth.token}` : '',
+            'x-user-id': auth.user.id,
+          },
+        });
+        if (!apiRes.ok) {
+          const txt = await apiRes.text();
+          throw new Error(`admin api: ${apiRes.status} ${txt}`);
         }
-      } catch (err: unknown) {
-        const maybeErr = err as { response?: { data?: unknown } };
-        if (maybeErr.response?.data) {
-          setUsersError(JSON.stringify(maybeErr.response.data));
-        } else {
-          setUsersError(String(err));
+        const json = await apiRes.json();
+        setUsers(
+          (json.items ?? json) as Array<Record<string, unknown>>
+        );
+      } else {
+        const config: Record<string, unknown> = {
+          params: { perPage: 50 },
+        };
+        if ((auth.token ?? null) != null) {
+          config['headers'] = {
+            Authorization: `Bearer ${auth.token}`,
+          } as Record<string, string>;
         }
-      } finally {
-        if (mounted) setLoadingUsers(false);
+
+        const res = await pb.get(
+          '/api/collections/users/records',
+          config
+        );
+        const data = res.data as {
+          items?: Array<Record<string, unknown>>;
+        };
+        setUsers(data.items ?? []);
       }
-    };
+    } catch (err: unknown) {
+      const maybeErr = err as { response?: { data?: unknown } };
+      if (maybeErr.response?.data) {
+        setUsersError(JSON.stringify(maybeErr.response.data));
+      } else {
+        setUsersError(String(err));
+      }
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, [auth.token, auth.user?.id, auth.user?.isAdmin]);
 
-    fetchUsers();
-
-    return () => {
-      mounted = false;
-    };
-  }, [tab, auth.token, auth.user?.id, auth.user?.isAdmin]);
+  React.useEffect(() => {
+    if (tab === 'users') {
+      fetchUsers();
+    }
+  }, [tab, fetchUsers]);
 
   if (!auth.user) return null;
 
@@ -244,6 +218,7 @@ export default function DashboardClient() {
                   users={users}
                   loading={loadingUsers}
                   error={usersError}
+                  onUserUpdated={fetchUsers}
                 />
               </CardContent>
             </Card>
