@@ -1,11 +1,17 @@
+import UpdateCategoryDialog from './UpdateCategoryDialog.client';
 import CreateCategoryDialog from './CreateCategoryDialog.client';
-import { useNotification } from '../context/NotificationContext';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { buildFileUrl } from '../lib/pocketbase';
 import Loading from '../components/ui/Loading';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 
@@ -33,9 +39,12 @@ export default function CategoriesTable({
   error,
   onCategoryUpdated,
 }: Props) {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [createOpen, setCreateOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number>(0);
+  const [createOpen, setCreateOpen] = useState<boolean>(false);
+  const [updateOpen, setUpdateOpen] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] =
+    useState<MappedCategory | null>(null);
 
   const mappedCategories: MappedCategory[] = (categories ?? []).map(
     (c) => {
@@ -65,7 +74,9 @@ export default function CategoriesTable({
           ? new Date(updatedRaw).toLocaleString()
           : '';
 
-      const imageUrl = image ? buildFileUrl(image, 'categories', id) : null;
+      const imageUrl = image
+        ? buildFileUrl(image, 'categories', id)
+        : null;
 
       return {
         id,
@@ -94,7 +105,7 @@ export default function CategoriesTable({
     return () => clearTimeout(t);
   }, [query]);
 
-  const filteredCategories = React.useMemo(() => {
+  const filteredCategories = useMemo(() => {
     const q = (debouncedQuery ?? '').toLowerCase();
     if (!q) return mappedCategories;
     return mappedCategories.filter((c) => {
@@ -130,7 +141,9 @@ export default function CategoriesTable({
 
   if (!categories || categories.length === 0)
     return (
-      <div className="text-sm text-gray-300">No categories found.</div>
+      <div className="text-sm text-gray-300">
+        No categories found.
+      </div>
     );
 
   const handlePageSizeChange = (value: number) => {
@@ -146,7 +159,12 @@ export default function CategoriesTable({
       <CardHeader>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center flex-wrap gap-2">
-            <Button onClick={() => setCreateOpen(true)} className="bg-gradient-to-b from-rose-700 to-rose-900 text-white">Create Category</Button>
+            <Button
+              onClick={() => setCreateOpen(true)}
+              className="bg-gradient-to-b from-rose-700 to-rose-900 text-white"
+            >
+              Create Category
+            </Button>
           </div>
           <div className="flex items-center flex-wrap gap-2">
             <label className="text-xs text-gray-400">Show</label>
@@ -210,7 +228,10 @@ export default function CategoriesTable({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {pagedCategoriesAll.map((c) => (
-            <Card key={c.id} className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-4 flex flex-col gap-4">
+            <Card
+              key={c.id}
+              className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-4 flex flex-col gap-4"
+            >
               <CardHeader className="p-0">
                 <div className="flex-shrink-0">
                   {c.imageUrl ? (
@@ -248,6 +269,10 @@ export default function CategoriesTable({
               <CardFooter className="flex gap-2">
                 <Button
                   aria-label={`Update ${c.name}`}
+                  onClick={() => {
+                    setSelectedCategory(c);
+                    setUpdateOpen(true);
+                  }}
                   className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
                 >
                   Update
@@ -268,12 +293,22 @@ export default function CategoriesTable({
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}
         index={lightboxIndex}
-        slides={pagedCategoriesAll.flatMap(c => c.imageUrl ? [{ src: c.imageUrl }] : [])}
+        slides={pagedCategoriesAll.flatMap((c) =>
+          c.imageUrl ? [{ src: c.imageUrl }] : []
+        )}
       />
       <CreateCategoryDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(newCategory) => {
+          onCategoryUpdated?.();
+        }}
+      />
+      <UpdateCategoryDialog
+        open={updateOpen}
+        onClose={() => setUpdateOpen(false)}
+        category={selectedCategory}
+        onUpdated={() => {
           onCategoryUpdated?.();
         }}
       />

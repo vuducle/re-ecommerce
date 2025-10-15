@@ -109,9 +109,9 @@ export default function HeaderClient({ categories }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#070607] flex items-center justify-center overflow-hidden ring-1 ring-rose-600/30 shadow-[0_6px_18px_rgba(220,38,38,0.12)]">
+              <div className="w-10 h-10  bg-[#070607] flex items-center justify-center overflow-hidden shadow-[0_6px_18px_rgba(220,38,38,0.12)]">
                 <Image
-                  src="/vercel.svg"
+                  src="/logo.png"
                   alt="RE"
                   width={32}
                   height={32}
@@ -174,9 +174,11 @@ export default function HeaderClient({ categories }: Props) {
                       : 'w-0 opacity-0'
                   )}
                 />
-                <div className={cn(
-                  'absolute top-full left-0 pt-2 w-48 bg-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto'
-                )}>
+                <div
+                  className={cn(
+                    'absolute top-full left-0 pt-2 w-48 bg-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto'
+                  )}
+                >
                   <div className="bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
                     <div className="py-2">
                       {categories.map((c) => (
@@ -336,7 +338,7 @@ export default function HeaderClient({ categories }: Props) {
               className={cn(
                 'relative w-full max-w-sm mx-4 rounded-lg bg-gradient-to-b from-[#0b0b0b] to-[#141414] border border-white/6 overflow-hidden shadow-xl transform transition-all duration-300 z-[10000]',
                 open
-                  ? 'scale-100 opacity-100 translate-y-60'
+                  ? 'scale-100 opacity-100 translate-y-90'
                   : 'scale-95 opacity-0 translate-y-4'
               )}
             >

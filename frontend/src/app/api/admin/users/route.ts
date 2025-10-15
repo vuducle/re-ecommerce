@@ -195,7 +195,18 @@ export async function PUT(req: Request) {
       );
     }
 
-    const { id, ...data } = await req.json();
+    const contentType = req.headers.get('content-type');
+    let id, data;
+
+    if (contentType?.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      id = formData.get('id') as string;
+      data = formData;
+    } else {
+      const json = await req.json();
+      id = json.id;
+      data = json;
+    }
 
     if (!id) {
       return NextResponse.json({ error: 'Missing user id to update' }, { status: 400 });

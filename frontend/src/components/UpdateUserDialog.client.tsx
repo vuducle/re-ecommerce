@@ -161,27 +161,52 @@ export default function UpdateUserDialog({
         return;
       }
 
-      const data: Record<string, unknown> = {
-        name,
-        email,
-        isAdmin,
-        lastKnownLocation,
-      };
+      let res;
+      if (profileImage) {
+        const formData = new FormData();
+        formData.append('id', user.id);
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('isAdmin', String(isAdmin));
+        formData.append('lastKnownLocation', lastKnownLocation);
+        if (password) {
+          formData.append('password', password);
+          formData.append('passwordConfirm', passwordConfirm);
+        }
+        formData.append('profileImage', profileImage, profileImage.name);
 
-      if (password) {
-        data.password = password;
-        data.passwordConfirm = passwordConfirm;
+        res = await fetch('/api/admin/users', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'x-user-id': currentUserId || '',
+          },
+          body: formData,
+        });
+      } else {
+        const data: Record<string, unknown> = {
+          id: user.id,
+          name,
+          email,
+          isAdmin,
+          lastKnownLocation,
+        };
+
+        if (password) {
+          data.password = password;
+          data.passwordConfirm = passwordConfirm;
+        }
+
+        res = await fetch('/api/admin/users', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            'x-user-id': currentUserId || '',
+          },
+          body: JSON.stringify(data),
+        });
       }
-
-      const res = await fetch('/api/admin/users', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          'x-user-id': currentUserId || '',
-        },
-        body: JSON.stringify({ id: user.id, ...data }),
-      });
 
       if (!res.ok) {
         const errorData = await res.json();
