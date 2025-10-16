@@ -1,4 +1,6 @@
 FROM alpine:latest
+# Install necessary packages
+RUN apk add --no-cache ca-certificates
 
 # Set working directory
 WORKDIR /app
@@ -7,7 +9,7 @@ WORKDIR /app
 COPY pocketbase /app/pocketbase
 
 # Copy data and migrations
-COPY pb_migrations /app/pb_migrations
+#COPY pb_migrations /app/pb_migrations
 
 # Make PocketBase binary executable
 RUN chmod +x /app/pocketbase
