@@ -229,7 +229,7 @@ export default function CategoriesTable({
                   setQuery(e.target.value);
                   setPage(1);
                 }}
-                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-64"
+                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-full sm:w-64"
               />
             </div>
           </div>
@@ -265,12 +265,12 @@ export default function CategoriesTable({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {pagedCategoriesAll.map((c) => (
             <Card
               key={c.id}
-              className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-4 flex flex-col gap-4"
+              className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4"
             >
               <CardHeader className="p-0">
                 <div className="flex-shrink-0">
@@ -313,7 +313,7 @@ export default function CategoriesTable({
                     setSelectedCategory(c);
                     setUpdateOpen(true);
                   }}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
+                  className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
                 >
                   Update
                 </Button>
@@ -324,13 +324,14 @@ export default function CategoriesTable({
                     setSelectedCategory(c);
                     setDeleteOpen(true);
                   }}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
+                  className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
                 >
                   Delete
                 </Button>
               </CardFooter>
             </Card>
-          ))}\
+          ))}
+          \
         </div>
       </CardContent>
       <Lightbox

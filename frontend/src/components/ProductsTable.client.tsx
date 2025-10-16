@@ -1,13 +1,24 @@
+import UpdateProductDialog from './UpdateProductDialog.client';
+import DeleteProductDialog from './DeleteProductDialog.client';
 import { useNotification } from '../context/NotificationContext';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { buildFileUrl } from '../lib/pocketbase';
+import { buildFileUrl, pb } from '../lib/pocketbase';
 import Loading from '../components/ui/Loading';
 import { Button } from '../components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
-import Lightbox from "yet-another-react-lightbox";
-import "yet-another-react-lightbox/styles.css";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '../components/ui/card';
+import Lightbox from 'yet-another-react-lightbox';
+import 'yet-another-react-lightbox/styles.css';
 import CreateProductDialog from './CreateProductDialog.client';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { isAxiosError } from 'axios';
 
 type Props = {
   products: Array<Record<string, unknown>> | null;
@@ -26,6 +37,7 @@ type MappedProduct = {
   created?: string;
   updated?: string;
   category?: string;
+  categoryId?: string;
   isFeatured?: boolean;
   isAvailable?: boolean;
   stock?: number;
@@ -42,6 +54,12 @@ export default function ProductsTable({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] =
+    useState<MappedProduct | null>(null);
+  const { showNotification } = useNotification();
+  const { token } = useSelector((state: RootState) => state.auth);
 
   const mappedProducts: MappedProduct[] = (products ?? []).map(
     (p) => {
@@ -53,7 +71,8 @@ export default function ProductsTable({
       const expanded = p.expand as
         | Record<string, unknown>
         | undefined;
-      let category = '';
+      const categoryId = (p.category as string) || '';
+      let categoryName = '';
       if (
         expanded &&
         typeof expanded === 'object' &&
@@ -66,11 +85,11 @@ export default function ProductsTable({
           'name' in (cat as Record<string, unknown>)
         ) {
           const name = (cat as Record<string, unknown>).name;
-          if (typeof name === 'string') category = name;
+          if (typeof name === 'string') categoryName = name;
         }
       }
-      if (!category) {
-        category = (p.category as string) || '';
+      if (!categoryName) {
+        categoryName = categoryId;
       }
       const isFeatured = (p.isFeatured as boolean) || false;
       const isAvailable = (p.isAvailable as boolean) || false;
@@ -110,7 +129,8 @@ export default function ProductsTable({
         images: imageUrls,
         created,
         updated,
-        category,
+        category: categoryName,
+        categoryId,
         isFeatured,
         isAvailable,
         stock,
@@ -168,6 +188,38 @@ export default function ProductsTable({
   const end = Math.min(start + pageSize, totalFiltered);
   const pagedProductsAll = filteredProducts.slice(start, end);
 
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct || !token) {
+      showNotification(
+        'You must be logged in to delete a product',
+        'error'
+      );
+      return;
+    }
+
+    try {
+      await pb.delete(
+        `/api/collections/products/records/${selectedProduct.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      showNotification('Product deleted successfully', 'success');
+      onProductUpdated?.();
+      setDeleteOpen(false);
+    } catch (err) {
+      let msg = 'Failed to delete product';
+      if (isAxiosError(err) && err.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      showNotification(msg, 'error');
+    }
+  };
+
   if (loading) return <Loading text="Loading products…" />;
 
   if (error)
@@ -190,7 +242,10 @@ export default function ProductsTable({
   const total = totalFiltered;
   const startDisplay = total === 0 ? 0 : start + 1;
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    if (typeof amount !== 'number') {
+      return '';
+    }
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND',
@@ -232,7 +287,7 @@ export default function ProductsTable({
                   setQuery(e.target.value);
                   setPage(1);
                 }}
-                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-64"
+                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-full sm:w-64"
               />
             </div>
           </div>
@@ -268,10 +323,13 @@ export default function ProductsTable({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {pagedProductsAll.map((p) => (
-            <Card key={p.id} className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-4 flex flex-col gap-4">
+            <Card
+              key={p.id}
+              className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4"
+            >
               <CardHeader className="p-0">
                 <div className="flex-shrink-0">
                   {p.imageUrl ? (
@@ -298,7 +356,7 @@ export default function ProductsTable({
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-0">
                 <div className="flex items-center justify-between gap-2">
                   <CardTitle className="text-lg font-bold text-white truncate">
                     {p.name || '—'}
@@ -343,14 +401,22 @@ export default function ProductsTable({
                 <div className="flex gap-2">
                   <Button
                     aria-label={`Update ${p.name}`}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
+                    onClick={() => {
+                      setSelectedProduct(p);
+                      setUpdateOpen(true);
+                    }}
+                    className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
                   >
                     Update
                   </Button>
 
                   <Button
                     aria-label={`Delete ${p.name}`}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
+                    onClick={() => {
+                      setSelectedProduct(p);
+                      setDeleteOpen(true);
+                    }}
+                    className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
                   >
                     Delete
                   </Button>
@@ -374,6 +440,20 @@ export default function ProductsTable({
         onCreated={() => {
           onProductUpdated?.();
         }}
+      />
+      <UpdateProductDialog
+        open={updateOpen}
+        onClose={() => setUpdateOpen(false)}
+        product={selectedProduct}
+        onUpdated={() => {
+          onProductUpdated?.();
+        }}
+      />
+      <DeleteProductDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDeleteProduct}
+        product={selectedProduct}
       />
     </Card>
   );

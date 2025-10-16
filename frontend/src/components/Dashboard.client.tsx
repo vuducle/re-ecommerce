@@ -38,16 +38,17 @@ export default function DashboardClient() {
     Record<string, unknown>
   > | null>(null);
   const [loadingProducts, setLoadingProducts] = React.useState(false);
-  const [productsError, setProductsError] = React.useState<string | null>(
-    null
-  );
+  const [productsError, setProductsError] = React.useState<
+    string | null
+  >(null);
   const [categories, setCategories] = React.useState<Array<
     Record<string, unknown>
   > | null>(null);
-  const [loadingCategories, setLoadingCategories] = React.useState(false);
-  const [categoriesError, setCategoriesError] = React.useState<string | null>(
-    null
-  );
+  const [loadingCategories, setLoadingCategories] =
+    React.useState(false);
+  const [categoriesError, setCategoriesError] = React.useState<
+    string | null
+  >(null);
 
   const fetchUsers = React.useCallback(async () => {
     setLoadingUsers(true);
@@ -301,7 +302,7 @@ export default function DashboardClient() {
                   <FaBox className="text-red-500" /> Products
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <ProductsTable
                   products={products}
                   loading={loadingProducts}
@@ -319,7 +320,7 @@ export default function DashboardClient() {
                   <FaTags className="text-red-500" /> Categories
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <CategoriesTable
                   categories={categories}
                   loading={loadingCategories}
