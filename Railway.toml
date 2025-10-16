@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = ""
+buildDir = "backend"
+
+[deploy]
+startCommand = "./pocketbase serve --http=0.0.0.0:8080"
