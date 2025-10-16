@@ -6,6 +6,7 @@ import ReduxProvider from '../components/ReduxProvider.client';
 import { NotificationProvider } from '../context/NotificationContext';
 import Notification from '../components/Notification';
 import REAudio from '@/components/REAudio.client';
+import Footer from '../components/Footer';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -47,6 +48,7 @@ export default function RootLayout({
             <div className="min-h-screen flex flex-col">
               <Header />
               <main className="flex-1">{children}</main>
+              <Footer />
               <REAudio />
             </div>
           </NotificationProvider>

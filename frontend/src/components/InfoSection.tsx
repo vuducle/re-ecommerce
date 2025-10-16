@@ -12,7 +12,7 @@ export default function InfoSection() {
               src="/img/cat.jpg"
               alt="The Merchant's wisdom"
               fill
-              className="object-cover"
+              className="object-cover object-right"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent" />
           </div>
@@ -22,20 +22,33 @@ export default function InfoSection() {
             </h2>
             <div className="space-y-4 text-gray-300 text-lg">
               <p>
-                "The world's gone mad, stranger. But that's no reason to lose your head... permanently. A smart buyer knows when to invest. A little extra firepower, a sturdier vest... these things make the difference between walking away and gettin' carried away."
+                "The world's gone mad, stranger. But that's no reason
+                to lose your head... permanently. A smart buyer knows
+                when to invest. A little extra firepower, a sturdier
+                vest... these things make the difference between
+                walking away and gettin' carried away."
               </p>
               <p>
-                "Don't be shy now. Everything's for sale. And if you find any treasures... well, I'm your man. We can do business anywhere. Heh heh heh."
+                "Don't be shy now. Everything's for sale. And if you
+                find any treasures... well, I'm your man. We can do
+                business anywhere. Heh heh heh."
               </p>
             </div>
             <div className="flex gap-4">
               <Link href="/inventory">
-                <Button size="lg" className="px-6 py-3 rounded-lg text-base font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-blue-700 to-blue-900 border border-blue-900/80 shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-blue-600 hover:to-blue-800 active:translate-y-0.5">
+                <Button
+                  size="lg"
+                  className="px-6 py-3 rounded-lg text-base font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-blue-700 to-blue-900 border border-blue-900/80 shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-blue-600 hover:to-blue-800 active:translate-y-0.5"
+                >
                   Tune-up Your Gear
                 </Button>
               </Link>
               <Link href="/about">
-                <Button size="lg" variant="outline" className="px-6 py-3 rounded-lg text-base font-semibold uppercase tracking-wider">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="px-6 py-3 rounded-lg text-base font-semibold uppercase tracking-wider"
+                >
                   Learn More
                 </Button>
               </Link>
