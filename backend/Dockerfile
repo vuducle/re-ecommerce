@@ -4,11 +4,11 @@ FROM alpine:latest
 WORKDIR /app
 
 # Copy PocketBase binary
-COPY ./pocketbase /app/pocketbase
+COPY pocketbase /app/pocketbase
 
 # Copy data and migrations
-COPY ./pb_data /app/pb_data
-COPY ./pb_migrations /app/pb_migrations
+COPY pb_data /app/pb_data
+COPY pb_migrations /app/pb_migrations
 
 # Make PocketBase binary executable
 RUN chmod +x /app/pocketbase
