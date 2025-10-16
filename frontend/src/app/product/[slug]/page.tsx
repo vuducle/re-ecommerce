@@ -1,8 +1,16 @@
 import React from 'react';
 import { getProductBySlug } from '@/lib/pocketbase';
 import ProductGallery from '@/components/ProductGallery.client';
+import type { Metadata } from 'next';
 
 type Props = { params: { slug: string } };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
+  return {
+    title: product?.name || 'Product',
+  };
+}
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = params;

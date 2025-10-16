@@ -1,6 +1,11 @@
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import FeaturedProducts from '../components/FeaturedProducts';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'RE-Commerce - Welcome to RE-Commerce',
+};
 
 export default async function Home() {
   return (

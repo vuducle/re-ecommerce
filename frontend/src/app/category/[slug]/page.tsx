@@ -1,12 +1,22 @@
 import React from 'react';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import {
   getCategoryBySlug,
   getProductsByCategory,
   Product,
 } from '@/lib/pocketbase';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const category = await getCategoryBySlug(params.slug);
+  return {
+    title: category?.name || 'Category',
+  };
+}
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+
 
 const PB_URL =
   process.env.NEXT_PUBLIC_POCKETBASE_URL ?? 'http://127.0.0.1:8090';

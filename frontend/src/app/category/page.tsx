@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Categories',
+};
+
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { buildFileUrl } from '@/lib/pocketbase';
