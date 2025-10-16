@@ -1,6 +1,8 @@
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import FeaturedProducts from '../components/FeaturedProducts';
+import CategoryShowcase from '../components/CategoryShowcase';
+import InfoSection from '../components/InfoSection';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,7 +17,8 @@ export default async function Home() {
       <main>
         <Hero />
         <FeaturedProducts />
-        {/* future: featured products, collections, testimonials */}
+        <CategoryShowcase />
+        <InfoSection />
       </main>
 
       <footer className="mx-auto mt-20 w-full max-w-7xl px-6 py-10 text-sm text-muted-foreground">

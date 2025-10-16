@@ -55,7 +55,7 @@ export default function FeaturedProducts() {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-8 mb-8">
         <Image src="/img/merchant.png" alt="Merchant" width={150} height={150} className="rounded-full border-4 border-yellow-400" />
         <div>
-          <h2 className="text-3xl font-bold text-center text-white">Got a selection of good things on sale, stranger.</h2>
+          <h2 className="text-3xl font-bold text-center text-white font-serif">Got a selection of good things on sale, stranger.</h2>
           <p className="text-lg text-center text-gray-400 mt-2">Heh heh heh... Thank you!</p>
         </div>
       </div>

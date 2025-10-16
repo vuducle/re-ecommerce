@@ -14,7 +14,6 @@ Here's a glimpse into the application.
 
 ![Screenshot 1](frontend/public/img/screenshots/screenshot1.png)
 ![Screenshot 2](frontend/public/img/screenshots/screensho2.png)
-![Screenshot 3](frontend/public/img/screenshots/screenshot3.png)
 ![Screenshot 4](frontend/public/img/screenshots/screenshot4.png)
 
 This repository contains:
