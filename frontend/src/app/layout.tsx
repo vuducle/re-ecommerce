@@ -7,6 +7,7 @@ import { NotificationProvider } from '../context/NotificationContext';
 import Notification from '../components/Notification';
 import REAudio from '@/components/REAudio.client';
 import Footer from '../components/Footer';
+import CookieDialog from '@/components/CookieDialog.client';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -51,6 +52,7 @@ export default function RootLayout({
               <Footer />
               <REAudio />
             </div>
+            <CookieDialog />
           </NotificationProvider>
         </ReduxProvider>
       </body>
