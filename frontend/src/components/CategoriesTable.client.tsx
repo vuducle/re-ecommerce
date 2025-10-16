@@ -1,8 +1,9 @@
 import UpdateCategoryDialog from './UpdateCategoryDialog.client';
 import CreateCategoryDialog from './CreateCategoryDialog.client';
+import DeleteCategoryDialog from './DeleteCategoryDialog.client';
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { buildFileUrl } from '../lib/pocketbase';
+import { buildFileUrl, pb } from '../lib/pocketbase';
 import Loading from '../components/ui/Loading';
 import { Button } from '../components/ui/button';
 import {
@@ -14,6 +15,10 @@ import {
 } from '../components/ui/card';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
+import { useNotification } from '../context/NotificationContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { isAxiosError } from 'axios';
 
 type Props = {
   categories: Array<Record<string, unknown>> | null;
@@ -43,8 +48,11 @@ export default function CategoriesTable({
   const [lightboxIndex, setLightboxIndex] = useState<number>(0);
   const [createOpen, setCreateOpen] = useState<boolean>(false);
   const [updateOpen, setUpdateOpen] = useState<boolean>(false);
+  const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] =
     useState<MappedCategory | null>(null);
+  const { showNotification } = useNotification();
+  const { token } = useSelector((state: RootState) => state.auth);
 
   const mappedCategories: MappedCategory[] = (categories ?? []).map(
     (c) => {
@@ -129,6 +137,38 @@ export default function CategoriesTable({
 
   const end = Math.min(start + pageSize, totalFiltered);
   const pagedCategoriesAll = filteredCategories.slice(start, end);
+
+  const handleDeleteCategory = async () => {
+    if (!selectedCategory || !token) {
+      showNotification(
+        'You must be logged in to delete a category',
+        'error'
+      );
+      return;
+    }
+
+    try {
+      await pb.delete(
+        `/api/collections/categories/records/${selectedCategory.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      showNotification('Category deleted successfully', 'success');
+      onCategoryUpdated?.();
+      setDeleteOpen(false);
+    } catch (err) {
+      let msg = 'Failed to delete category';
+      if (isAxiosError(err) && err.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      showNotification(msg, 'error');
+    }
+  };
 
   if (loading) return <Loading text="Loading categories…" />;
 
@@ -280,13 +320,17 @@ export default function CategoriesTable({
 
                 <Button
                   aria-label={`Delete ${c.name}`}
+                  onClick={() => {
+                    setSelectedCategory(c);
+                    setDeleteOpen(true);
+                  }}
                   className="px-3 py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
                 >
                   Delete
                 </Button>
               </CardFooter>
             </Card>
-          ))}
+          ))}\
         </div>
       </CardContent>
       <Lightbox
@@ -311,6 +355,12 @@ export default function CategoriesTable({
         onUpdated={() => {
           onCategoryUpdated?.();
         }}
+      />
+      <DeleteCategoryDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDeleteCategory}
+        category={selectedCategory}
       />
     </Card>
   );
