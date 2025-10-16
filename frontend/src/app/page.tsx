@@ -1,5 +1,6 @@
 import Header from '../components/Header';
 import Hero from '../components/Hero';
+import FeaturedProducts from '../components/FeaturedProducts';
 
 export default async function Home() {
   return (
@@ -8,6 +9,7 @@ export default async function Home() {
 
       <main>
         <Hero />
+        <FeaturedProducts />
         {/* future: featured products, collections, testimonials */}
       </main>
 

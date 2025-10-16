@@ -85,6 +85,9 @@ export type Product = {
   isAvailable?: boolean;
   created: string;
   updated?: string;
+  expand?: {
+    category?: Category;
+  };
   [key: string]: unknown;
 };
 /**
@@ -237,6 +240,14 @@ export async function logout() {
   } catch {
     // ignore
   }
+}
+
+export async function getFeaturedProducts(): Promise<PBList<Product>> {
+  const params = { filter: `isFeatured=true`, expand: 'category' };
+  const res = await pb.get('/api/collections/products/records', {
+    params,
+  });
+  return res.data as PBList<Product>;
 }
 
 /**
