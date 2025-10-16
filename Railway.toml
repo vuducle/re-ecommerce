@@ -1,6 +1,4 @@
 [build]
-builder = "NIXPACKS"
-buildCommand = "chmod +x ./pocketbase"
-
-[deploy]
-startCommand = "./pocketbase serve --dir pb_data --http 0.0.0.0:$PORT"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+buildContext = "backend"
