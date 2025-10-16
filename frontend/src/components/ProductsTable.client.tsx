@@ -34,7 +34,7 @@ type MappedProduct = {
   price: number;
   imageUrl?: string | null;
   images?: string[];
-  created?: string;
+  created: string;
   updated?: string;
   category?: string;
   categoryId?: string;

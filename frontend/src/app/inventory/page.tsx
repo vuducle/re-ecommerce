@@ -45,17 +45,27 @@ export default function InventoryPage() {
           {cartItems.map(({ product, quantity }) => (
             <div key={product.id} className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-[#0b0b0b] border border-[#2a0808] rounded-lg">
               <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-md overflow-hidden bg-zinc-800">
-                {product.images && product.images.length > 0 ? (
-                  <Image
-                    src={buildFileUrl(product.images[0], 'products', product.id)}
-                    alt={product.name || 'Product Image'}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold">RE</div>
-                )}
+                {(() => {
+                  const imageUrl = product.images && product.images.length > 0
+                    ? buildFileUrl(product.images[0], 'products', product.id)
+                    : undefined;
+                  
+                  if (imageUrl) {
+                    return (
+                      <Image
+                        src={imageUrl}
+                        alt={product.name || 'Product Image'}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    );
+                  }
+                  
+                  return (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold">RE</div>
+                  );
+                })()}
               </div>
               <div className="flex-1 text-center sm:text-left">
                 <h2 className="text-xl font-bold text-white">{product.name}</h2>

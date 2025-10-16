@@ -348,9 +348,9 @@ export default function UsersTable({
         open={!!userToUpdate}
         onClose={() => setUserToUpdate(null)}
         user={userToUpdate}
-        token={token}
+        token={token ?? null}
         currentUserId={user?.id || null}
-        onUpdated={(updatedUser) => {
+        onUpdated={() => {
           onUserUpdated?.();
           setUserToUpdate(null);
         }}

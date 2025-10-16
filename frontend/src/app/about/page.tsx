@@ -18,7 +18,7 @@ export default function AboutPage() {
               About This Humble Merchant
             </h1>
             <p className="text-lg text-gray-300 leading-relaxed">
-              "Welcome, stranger! Surprised to see a shop in a place like this? Heh heh, where there's conflict, there's currency. And I'm always open for business."
+              &quot;Welcome, stranger! Surprised to see a shop in a place like this? Heh heh, where there&apos;s conflict, there&apos;s currency. And I&apos;m always open for business.&quot;
             </p>
           </div>
 
@@ -27,8 +27,8 @@ export default function AboutPage() {
               <CardTitle className="text-2xl font-bold text-white">My Philosophy</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-gray-300">
-              <p>"I'm a simple man. I see a need, I provide a service. You need to survive, I need to make a livin'. It's a perfect arrangement, eh? I don't ask questions, and I don't judge. Your pesetas are as good as anyone else's."</p>
-              <p>"Whether you're a government agent on a secret mission or just a tourist who took a very wrong turn, I've got the goods to see you through. From a trusty handgun to a... more explosive solution, my inventory is second to none."</p>
+              <p>&quot;I&apos;m a simple man. I see a need, I provide a service. You need to survive, I need to make a livin&apos;. It&apos;s a perfect arrangement, eh? I don&apos;t ask questions, and I don&apos;t judge. Your pesetas are as good as anyone else&apos;s.&quot;</p>
+              <p>&quot;Whether you&apos;re a government agent on a secret mission or just a tourist who took a very wrong turn, I&apos;ve got the goods to see you through. From a trusty handgun to a... more explosive solution, my inventory is second to none.&quot;</p>
             </CardContent>
           </Card>
 
@@ -38,7 +38,7 @@ export default function AboutPage() {
             </CardHeader>
             <CardContent className="space-y-4 text-gray-300">
               <p>This website is a non-profit, fan-made tribute to the incredible world of Resident Evil 4 and its iconic merchant, created by Capcom. It is an educational project to practice web development skills with Next.js, React, and PocketBase.</p>
-              <p>No real items are for sale, and no real money is involved. It's all just for fun. Thank you for visiting, stranger!</p>
+              <p>No real items are for sale, and no real money is involved. It&apos;s all just for fun. Thank you for visiting, stranger!</p>
             </CardContent>
           </Card>
         </div>
@@ -55,7 +55,7 @@ export default function AboutPage() {
             </div>
           </Card>
           <Card className="bg-[#0b0b0b] border border-[#2a0808] p-6 text-center">
-            <p className="text-gray-300 mb-4">"Got a selection of good things on sale, stranger."</p>
+            <p className="text-gray-300 mb-4">&quot;Got a selection of good things on sale, stranger.&quot;</p>
             <Link href="/">
                 <Button variant="destructive" className="w-full">
                     Browse Wares

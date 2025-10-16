@@ -72,9 +72,8 @@ export default function CheckoutPage() {
       user: user.id,
       items: items,
       shippingAddress: shippingAddress,
-      totalAmount: totalAmount,
+      total: totalAmount,
       status: 'pending',
-      orderDate: new Date().toISOString(),
     };
 
     try {
@@ -85,21 +84,29 @@ export default function CheckoutPage() {
         },
       });
 
-      showNotification('Order placed successfully! Thank you, stranger.', 'success');
+      showNotification(
+        'Order placed successfully! Thank you, stranger.',
+        'success'
+      );
       dispatch(clearCart());
       router.push('/checkout/success');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong... Could not place order.';
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Something went wrong... Could not place order.';
       // Try to get a more specific message from PocketBase/axios error
       const axiosError = err as any;
       const pbErrorData = axiosError?.response?.data?.data;
       let detailedMessage = message;
 
       if (pbErrorData) {
-        const fieldErrors = Object.keys(pbErrorData).map(key => `${key}: ${pbErrorData[key].message}`).join('\n');
+        const fieldErrors = Object.keys(pbErrorData)
+          .map((key) => `${key}: ${pbErrorData[key].message}`)
+          .join('\n');
         detailedMessage = fieldErrors || message;
       }
-      
+
       showNotification(detailedMessage, 'error');
       console.error(err);
     }
@@ -112,7 +119,8 @@ export default function CheckoutPage() {
           Your Attache Case is Empty
         </h1>
         <p className="text-gray-300 mb-8">
-          "Nothin' to checkout, stranger. Go buy somethin'!"
+          {'"'}Nothin&apos; to checkout, stranger. Go buy
+          somethin&apos;!{'"'}
         </p>
         <Link href="/" passHref>
           <Button variant="destructive">Browse Wares</Button>

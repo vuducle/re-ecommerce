@@ -1,12 +1,13 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import PocketBase from 'pocketbase';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
+
     const pb = new PocketBase(
       process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090'
     );
@@ -27,10 +28,10 @@ export async function PATCH(
     const formData = await request.formData();
     const updatedRecord = await pb
       .collection('products')
-      .update(params.id, formData);
+      .update(id, formData);
 
     return NextResponse.json(updatedRecord);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to update product' },
       { status: 500 }
@@ -40,9 +41,11 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
+
     const pb = new PocketBase(
       process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090'
     );
@@ -60,10 +63,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await pb.collection('products').delete(params.id);
+    await pb.collection('products').delete(id);
 
     return new Response(null, { status: 204 }); // Successfully deleted
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to delete product' },
       { status: 500 }

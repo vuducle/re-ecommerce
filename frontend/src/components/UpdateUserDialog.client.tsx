@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import pb from '../lib/pocketbase';
 import { Button } from './ui/button';
-import Loading from './ui/Loading';
 import { useNotification } from '../context/NotificationContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
@@ -56,7 +61,7 @@ export default function UpdateUserDialog({
   >(null);
   const [emailError, setEmailError] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  //const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { showNotification } = useNotification();
 
@@ -137,7 +142,7 @@ export default function UpdateUserDialog({
     if (!user) return;
 
     setError(null);
-    setLoading(true);
+    //    setLoading(true);
     try {
       const emOk = validateEmail(email);
       const pwErr = checkPasswordStrength(password);
@@ -150,14 +155,14 @@ export default function UpdateUserDialog({
       else setPasswordConfirmError(null);
 
       if (!emOk || pwErr) {
-        setLoading(false);
+        //setLoading(false);
         return;
       }
       if (
         passwordConfirmError ||
         (password && passwordConfirm !== password)
       ) {
-        setLoading(false);
+        //setLoading(false);
         return;
       }
 
@@ -173,7 +178,11 @@ export default function UpdateUserDialog({
           formData.append('password', password);
           formData.append('passwordConfirm', passwordConfirm);
         }
-        formData.append('profileImage', profileImage, profileImage.name);
+        formData.append(
+          'profileImage',
+          profileImage,
+          profileImage.name
+        );
 
         res = await fetch('/api/admin/users', {
           method: 'PUT',
@@ -245,7 +254,7 @@ export default function UpdateUserDialog({
       } else setError(maybe.message ?? String(err));
       showNotification(maybe.message ?? String(err), 'error');
     } finally {
-      setLoading(false);
+      //setLoading(false);
     }
   };
 
@@ -255,24 +264,43 @@ export default function UpdateUserDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-[#0b0b0b] border-[#2a0808]">
         <DialogHeader>
-          <DialogTitle className="text-white">Update User</DialogTitle>
+          <DialogTitle className="text-white">
+            Update User
+          </DialogTitle>
           <DialogDescription>
-            Make changes to the user profile here. Click save when you're done.
+            Make changes to the user profile here. Click save when
+            you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right text-gray-300">
+              <Label
+                htmlFor="name"
+                className="text-right text-gray-300"
+              >
                 Name
               </Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3 bg-[#0b0b0b] border-gray-800" />
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right text-gray-300">
+              <Label
+                htmlFor="email"
+                className="text-right text-gray-300"
+              >
                 Email
               </Label>
-              <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3 bg-[#0b0b0b] border-gray-800" />
+              <Input
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+              />
               {emailError && (
                 <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
                   {emailError}
@@ -280,25 +308,44 @@ export default function UpdateUserDialog({
               )}
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="password" className="text-right text-gray-300">
+              <Label
+                htmlFor="password"
+                className="text-right text-gray-300"
+              >
                 Password
               </Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="col-span-3 bg-[#0b0b0b] border-gray-800" />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+              />
               {passwordError ? (
                 <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
                   {passwordError}
                 </div>
               ) : (
                 <div className="col-start-2 col-span-3 text-xs text-gray-500 mt-1">
-                  Password must be 8+ chars and include letters & numbers.
+                  Password must be 8+ chars and include letters &
+                  numbers.
                 </div>
               )}
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="passwordConfirm" className="text-right text-gray-300">
+              <Label
+                htmlFor="passwordConfirm"
+                className="text-right text-gray-300"
+              >
                 Confirm Password
               </Label>
-              <Input id="passwordConfirm" type="password" value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} className="col-span-3 bg-[#0b0b0b] border-gray-800" />
+              <Input
+                id="passwordConfirm"
+                type="password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+              />
               {passwordConfirmError && (
                 <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
                   {passwordConfirmError}
@@ -306,28 +353,62 @@ export default function UpdateUserDialog({
               )}
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="lastKnownLocation" className="text-right text-gray-300">
+              <Label
+                htmlFor="lastKnownLocation"
+                className="text-right text-gray-300"
+              >
                 Last Known Location
               </Label>
-              <Input id="lastKnownLocation" value={lastKnownLocation} onChange={(e) => setLastKnownLocation(e.target.value)} className="col-span-3 bg-[#0b0b0b] border-gray-800" />
+              <Input
+                id="lastKnownLocation"
+                value={lastKnownLocation}
+                onChange={(e) => setLastKnownLocation(e.target.value)}
+                className="col-span-3 bg-[#0b0b0b] border-gray-800"
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-start-2 col-span-3 flex items-center gap-2">
-                <Checkbox id="isAdminUpdate" checked={isAdmin} onCheckedChange={(val) => setIsAdmin(Boolean(val))} />
-                <Label htmlFor="isAdminUpdate" className="text-gray-300">Admin</Label>
+                <Checkbox
+                  id="isAdminUpdate"
+                  checked={isAdmin}
+                  onCheckedChange={(val) => setIsAdmin(Boolean(val))}
+                />
+                <Label
+                  htmlFor="isAdminUpdate"
+                  className="text-gray-300"
+                >
+                  Admin
+                </Label>
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="profileImage" className="text-right text-gray-300">
+              <Label
+                htmlFor="profileImage"
+                className="text-right text-gray-300"
+              >
                 Profile Image
               </Label>
               <div className="col-span-3 flex items-center gap-4">
                 {previewUrl ? (
-                  <Image src={previewUrl} alt="preview" width={80} height={80} className="rounded-full object-cover" unoptimized />
+                  <Image
+                    src={previewUrl}
+                    alt="preview"
+                    width={80}
+                    height={80}
+                    className="rounded-full object-cover"
+                    unoptimized
+                  />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">RE</div>
+                  <div className="w-20 h-20 rounded-full bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
+                    RE
+                  </div>
                 )}
-                <Input id="profileImage" type="file" onChange={onFileChange} className="bg-[#0b0b0b] border-gray-800" />
+                <Input
+                  id="profileImage"
+                  type="file"
+                  onChange={onFileChange}
+                  className="bg-[#0b0b0b] border-gray-800"
+                />
               </div>
               {fileError && (
                 <div className="col-start-2 col-span-3 text-xs text-yellow-300 mt-1">
@@ -342,8 +423,15 @@ export default function UpdateUserDialog({
             </div>
           )}
           <DialogFooter>
-            <Button type="button" onClick={onClose} variant="outline">Cancel</Button>
-            <Button type="submit" className="bg-gradient-to-b from-rose-700 to-rose-900 text-white">Update User</Button>
+            <Button type="button" onClick={onClose} variant="outline">
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-gradient-to-b from-rose-700 to-rose-900 text-white"
+            >
+              Update User
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

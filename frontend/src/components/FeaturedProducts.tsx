@@ -73,21 +73,31 @@ export default function FeaturedProducts() {
                 <Card className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4 h-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-900/50">
                   <CardHeader className="p-0">
                     <div className="flex-shrink-0">
-                      {p.images && p.images.length > 0 ? (
-                        <div className="rounded-lg overflow-hidden w-full h-48 relative">
-                          <Image
-                            src={buildFileUrl(p.images[0], 'products', p.id)}
-                            alt={p.name || 'Product Image'}
-                            layout="fill"
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full h-48 rounded-lg bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
-                          RE
-                        </div>
-                      )}
+                      {(() => {
+                        const imageUrl = p.images && p.images.length > 0
+                          ? buildFileUrl(p.images[0], 'products', p.id)
+                          : undefined;
+
+                        if (imageUrl) {
+                          return (
+                            <div className="rounded-lg overflow-hidden w-full h-48 relative">
+                              <Image
+                                src={imageUrl}
+                                alt={p.name || 'Product Image'}
+                                layout="fill"
+                                className="object-cover"
+                                unoptimized
+                              />
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="w-full h-48 rounded-lg bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
+                            RE
+                          </div>
+                        );
+                      })()}
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 flex-grow">

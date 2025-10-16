@@ -1,12 +1,13 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import PocketBase from 'pocketbase';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
+
     const pb = new PocketBase(
       process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090'
     );
@@ -24,10 +25,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await pb.collection('categories').delete(params.id);
+    await pb.collection('categories').delete(id);
 
     return new Response(null, { status: 204 }); // Successfully deleted
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to delete category' },
       { status: 500 }
