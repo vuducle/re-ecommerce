@@ -7,7 +7,6 @@ WORKDIR /app
 COPY pocketbase /app/pocketbase
 
 # Copy data and migrations
-COPY pb_data /app/pb_data
 COPY pb_migrations /app/pb_migrations
 
 # Make PocketBase binary executable
