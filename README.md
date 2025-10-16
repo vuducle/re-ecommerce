@@ -2,6 +2,21 @@
 
 Lightweight example e‑commerce app using PocketBase for the backend and Next.js for the frontend.
 
+## About The Project
+
+"What're ya buyin'?"
+
+RE-E-commerce is a fan-made e-commerce application inspired by the world of Resident Evil. Imagine a place where you can browse and purchase iconic items from the game series, from powerful weapons to life-saving herbs. This application is a demonstration of a modern web application built with a Next.js frontend and a PocketBase backend.
+
+### Screenshots
+
+Here's a glimpse into the application.
+
+![Screenshot 1](frontend/public/img/screenshots/screenshot1.png)
+![Screenshot 2](frontend/public/img/screenshots/screensho2.png)
+![Screenshot 3](frontend/public/img/screenshots/screenshot3.png)
+![Screenshot 4](frontend/public/img/screenshots/screenshot4.png)
+
 This repository contains:
 
 - `backend/` — PocketBase binary, migrations and the sqlite data directory (`pb_data/`).
@@ -50,7 +65,7 @@ docker run --rm -p 8090:8090 -v $(pwd)/pb_data:/pb_data ghcr.io/pocketbase/pocke
 
 ## Run the frontend (Next.js)
 
-The frontend expects the PocketBase REST endpoint to be available. By default the app uses `http://127.0.0.1:8090`.
+The frontend expects the PocketBase REST endpoint to be available.
 
 1. Open a terminal and start the frontend:
 
@@ -72,13 +87,15 @@ npm run build
 npm run start
 ```
 
-Environment variables
+### Environment variables
 
-Create a `.env.local` in `frontend/` (Next.js will pick this up automatically). Example:
+The frontend requires an environment file to connect to the backend. There is an example file in the `frontend` directory named `.env.example`.
 
-```env
-NEXT_PUBLIC_POCKETBASE_URL=http://127.0.0.1:8090
-```
+1.  In the `frontend/` directory, create a copy of the example environment file and name it `.env.local`:
+    ```bash
+    cp #.env.example .env.local
+    ```
+2.  Open `.env.local` and ensure the `NEXT_PUBLIC_POCKETBASE_URL` is pointing to your running PocketBase instance. The default is `http://127.0.0.1:8090`.
 
 The frontend code uses this variable in `src/lib/pocketbase.ts` as `PB_URL`.
 
