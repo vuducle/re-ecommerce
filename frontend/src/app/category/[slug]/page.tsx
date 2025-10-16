@@ -16,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import AddToCartButton from '@/components/AddToCartButton.client';
 
 
 const PB_URL =
@@ -298,17 +299,8 @@ export default async function CategoryPage({ params }: Props) {
                           </div>
 
                           <div className="w-full sm:w-auto mt-2 sm:mt-0 flex flex-col gap-2">
-                            <button
-                              type="button"
-                              disabled={
-                                !(
-                                  (process.env
-                                    .NEXT_PUBLIC_ENABLE_ADD_TO_CART ??
-                                    'false') === 'true'
-                                ) ||
-                                (typeof p.stock === 'number' &&
-                                  p.stock <= 0)
-                              }
+                            <AddToCartButton
+                              product={p}
                               className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 font-semibold text-sm text-white transition-transform transform ${
                                 (process.env
                                   .NEXT_PUBLIC_ENABLE_ADD_TO_CART ??
@@ -320,7 +312,7 @@ export default async function CategoryPage({ params }: Props) {
                               }`}
                             >
                               Add to cart
-                            </button>
+                            </AddToCartButton>
 
                             <Link
                               href={`/product/${p.slug ?? p.id}`}

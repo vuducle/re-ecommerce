@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { clearAuth } from '../store/slices/authSlice';
 import { logout as pbLogout, buildFileUrl } from '../lib/pocketbase';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
@@ -33,6 +33,8 @@ export default function HeaderClient({ categories }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
   const auth = useSelector((s: RootState) => s.auth);
+  const { items: cartItems } = useSelector((state: RootState) => state.cart);
+  const itemCount = Object.values(cartItems).reduce((sum, item) => sum + item.quantity, 0);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   // theme is forced to dark globally
@@ -197,6 +199,15 @@ export default function HeaderClient({ categories }: Props) {
             </nav>
 
             <div className="flex items-center">
+              <Link href="/inventory" className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2">
+                <ShoppingCart size={20} />
+                {itemCount > 0 && (
+                  <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                    {itemCount}
+                  </span>
+                )}
+              </Link>
+
               {!auth.authenticated ? (
                 <>
                   <Link href="/login">

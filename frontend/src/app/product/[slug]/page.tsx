@@ -1,6 +1,7 @@
 import React from 'react';
 import { getProductBySlug } from '@/lib/pocketbase';
 import ProductGallery from '@/components/ProductGallery.client';
+import AddToCartButton from '@/components/AddToCartButton.client';
 import type { Metadata } from 'next';
 
 type Props = { params: { slug: string } };
@@ -85,9 +86,9 @@ export default async function ProductPage({ params }: Props) {
             )}
 
             <div className="mt-6 flex items-center gap-4">
-              <button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#6b0b0b] to-[#3e0606] px-6 py-3 text-white font-semibold shadow-lg border border-rose-900/30 hover:scale-[1.01] transition-transform">
+              <AddToCartButton product={product} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#6b0b0b] to-[#3e0606] px-6 py-3 text-white font-semibold shadow-lg border border-rose-900/30 hover:scale-[1.01] transition-transform">
                 Add to cart
-              </button>
+              </AddToCartButton>
               <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 bg-transparent text-rose-200 border border-rose-400/10 hover:bg-rose-400/5 transition">
                 Wishlist
               </button>
