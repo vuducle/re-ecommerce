@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import CreateProductDialog from './CreateProductDialog.client';
 
 type Props = {
   products: Array<Record<string, unknown>> | null;
@@ -40,6 +41,7 @@ export default function ProductsTable({
 }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const mappedProducts: MappedProduct[] = (products ?? []).map(
     (p) => {
@@ -200,6 +202,14 @@ export default function ProductsTable({
       <CardHeader>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center flex-wrap gap-2">
+            <Button
+              onClick={() => setCreateOpen(true)}
+              className="bg-gradient-to-b from-rose-700 to-rose-900 text-white"
+            >
+              Create Product
+            </Button>
+          </div>
+          <div className="flex items-center flex-wrap gap-2">
             <label className="text-xs text-gray-400">Show</label>
             <select
               value={pageSize}
@@ -357,6 +367,13 @@ export default function ProductsTable({
         slides={pagedProductsAll.flatMap(
           (p) => p.images?.map((img) => ({ src: img })) || []
         )}
+      />
+      <CreateProductDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => {
+          onProductUpdated?.();
+        }}
       />
     </Card>
   );

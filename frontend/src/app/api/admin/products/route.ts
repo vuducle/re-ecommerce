@@ -14,3 +14,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const pb = new PocketBase(
+      process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090'
+    );
+    const token = request.headers.get('Authorization')?.split(' ')?.[1];
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    pb.authStore.save(token, null);
+    await pb.authStore.isValid;
+    const user = pb.authStore.model;
+
+    if (!user || !user.isAdmin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const formData = await request.formData();
+    const newRecord = await pb.collection('products').create(formData);
+
+    return NextResponse.json(newRecord);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create product' },
+      { status: 500 }
+    );
+  }
+}
