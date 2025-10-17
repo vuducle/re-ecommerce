@@ -72,8 +72,9 @@ export default function CheckoutPage() {
       user: user.id,
       items: items,
       shippingAddress: shippingAddress,
-      total: totalAmount,
+      totalAmount: totalAmount,
       status: 'pending',
+      orderDate: new Date().toISOString(),
     };
 
     try {
@@ -245,6 +246,9 @@ export default function CheckoutPage() {
           <Button
             type="submit"
             disabled={loading}
+            onClick={() => {
+              // Handle order placement logic here
+            }}
             size="lg"
             className="w-full mt-6 px-8 py-4 rounded-lg text-lg font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-green-700 to-green-900 border border-green-900/80 shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-green-600 hover:to-green-800 active:translate-y-0.5"
           >

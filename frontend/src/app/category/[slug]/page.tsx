@@ -5,7 +5,15 @@ import {
   getCategoryBySlug,
   getProductsByCategory,
   Product,
+  getCategories,
 } from '@/lib/pocketbase';
+
+export async function generateStaticParams() {
+  const { items } = await getCategories();
+  return items.map((category) => ({
+    slug: category.slug,
+  }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = await getCategoryBySlug(params.slug);

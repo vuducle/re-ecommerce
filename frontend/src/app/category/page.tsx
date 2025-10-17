@@ -29,6 +29,7 @@ async function getCategories(): Promise<Category[]> {
     { cache: 'no-store' }
   );
   const data = await res.json();
+  console.log("Categories data:", data.items); // Add this line for debugging
   return data.items;
 }
 

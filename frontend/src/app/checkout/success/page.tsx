@@ -14,7 +14,7 @@ export default function OrderSuccessPage() {
                 <Link href="/" passHref>
                     <Button variant="destructive">Back to Shop</Button>
                 </Link>
-                <Link href="/dashboard" passHref>
+                <Link href="/profile" passHref>
                     <Button variant="outline">View Orders</Button>
                 </Link>
             </div>

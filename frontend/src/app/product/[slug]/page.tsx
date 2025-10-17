@@ -1,8 +1,15 @@
 import React from 'react';
-import { getProductBySlug } from '@/lib/pocketbase';
+import { getProductBySlug, getProducts } from '@/lib/pocketbase';
 import ProductGallery from '@/components/ProductGallery.client';
 import AddToCartButton from '@/components/AddToCartButton.client';
 import type { Metadata } from 'next';
+
+export async function generateStaticParams() {
+  const { items } = await getProducts();
+  return items.map((product) => ({
+    slug: product.slug,
+  }));
+}
 
 type Props = { params: { slug: string } };
 

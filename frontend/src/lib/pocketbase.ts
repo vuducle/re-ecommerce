@@ -128,6 +128,46 @@ export async function getProductsByCategory(
   } as PBList<Product>;
 }
 
+export async function getProducts(opts?: {
+  perPage?: number;
+}): Promise<PBList<Product>> {
+  const params: Record<string, unknown> = {
+    perPage: opts?.perPage ?? 200,
+  };
+  const res = await pb.get('/api/collections/products/records', {
+    params,
+  });
+  return res.data as PBList<Product>;
+}
+
+export type Order = {
+  id: string;
+  user: string;
+  status: 'Cancelled' | 'Shipped' | 'In process' | 'Finish' | 'pending';
+  orderDate: string;
+  totalAmount: number;
+  shippingAddress: any;
+  items: any;
+  created: string;
+  updated?: string;
+};
+
+export async function getMyOrders(
+  token: string,
+  opts?: { perPage?: number }
+): Promise<PBList<Order>> {
+  const params: Record<string, unknown> = {
+    perPage: opts?.perPage ?? 50,
+  };
+  const res = await pb.get('/api/collections/orders/records', {
+    params,
+    headers: {
+      Authorization: `${token}`,
+    },
+  });
+  return res.data as PBList<Order>;
+}
+
 export default pb;
 
 export type AuthResponse = {
@@ -195,6 +235,10 @@ export async function authWithPassword(
       name: asString(
         raw.name ?? raw.fullName ?? raw.displayName ?? ''
       ),
+      profileImage:
+        (typeof raw.profileImage === 'string' && raw.profileImage) ||
+        (typeof raw.avatar === 'string' && raw.avatar) ||
+        undefined,
       profileImage:
         (typeof raw.profileImage === 'string' && raw.profileImage) ||
         (typeof raw.avatar === 'string' && raw.avatar) ||
