@@ -229,11 +229,6 @@ export default function ProductsTable({
       </div>
     );
 
-  if (!products || products.length === 0)
-    return (
-      <div className="text-sm text-gray-300">No products found.</div>
-    );
-
   const handlePageSizeChange = (value: number) => {
     setPageSize(value);
     setPage(1);
@@ -264,167 +259,177 @@ export default function ProductsTable({
               Create Product
             </Button>
           </div>
-          <div className="flex items-center flex-wrap gap-2">
-            <label className="text-xs text-gray-400">Show</label>
-            <select
-              value={pageSize}
-              onChange={(e) =>
-                handlePageSizeChange(Number(e.target.value))
-              }
-              className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span className="text-xs text-gray-400">per page</span>
-            <div className="ml-3">
-              <input
-                type="search"
-                placeholder="Search name, description"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-full sm:w-64"
-              />
+          {mappedProducts.length > 0 && (
+            <div className="flex items-center flex-wrap gap-2">
+              <label className="text-xs text-gray-400">Show</label>
+              <select
+                value={pageSize}
+                onChange={(e) =>
+                  handlePageSizeChange(Number(e.target.value))
+                }
+                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-xs text-gray-400">per page</span>
+              <div className="ml-3">
+                <input
+                  type="search"
+                  placeholder="Search name, description"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-full sm:w-64"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex items-center gap-2 text-xs text-gray-300">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className={`px-2 py-1 rounded ${
-                page <= 1
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'bg-gray-800 hover:bg-gray-700'
-              }`}
-            >
-              Prev
-            </button>
-            <span className="font-mono">
-              {startDisplay}-{end} of {total}
-            </span>
-            <button
-              onClick={() =>
-                setPage((p) => Math.min(totalPages, p + 1))
-              }
-              disabled={page >= totalPages}
-              className={`px-2 py-1 rounded ${
-                page >= totalPages
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'bg-gray-800 hover:bg-gray-700'
-              }`}
-            >
-              Next
-            </button>
-          </div>
+          {mappedProducts.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-gray-300">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className={`px-2 py-1 rounded ${
+                  page <= 1
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                Prev
+              </button>
+              <span className="font-mono">
+                {startDisplay}-{end} of {total}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={page >= totalPages}
+                className={`px-2 py-1 rounded ${
+                  page >= totalPages
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {pagedProductsAll.map((p) => (
-            <Card
-              key={p.id}
-              className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4"
-            >
-              <CardHeader className="p-0">
-                <div className="flex-shrink-0">
-                  {p.imageUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLightboxIndex(0);
-                        setLightboxOpen(true);
-                      }}
-                      className="rounded-lg overflow-hidden w-full h-48 relative"
-                    >
-                      <Image
-                        src={p.imageUrl}
-                        alt={p.name || 'Product Image'}
-                        layout="fill"
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </button>
-                  ) : (
-                    <div className="w-full h-48 rounded-lg bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
-                      RE
+        {pagedProductsAll.length === 0 ? (
+          <div className="text-sm text-gray-300 text-center py-8">
+            No products found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+            {pagedProductsAll.map((p) => (
+              <Card
+                key={p.id}
+                className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4"
+              >
+                <CardHeader className="p-0">
+                  <div className="flex-shrink-0">
+                    {p.imageUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLightboxIndex(0);
+                          setLightboxOpen(true);
+                        }}
+                        className="rounded-lg overflow-hidden w-full h-48 relative"
+                      >
+                        <Image
+                          src={p.imageUrl}
+                          alt={p.name || 'Product Image'}
+                          layout="fill"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </button>
+                    ) : (
+                      <div className="w-full h-48 rounded-lg bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
+                        RE
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg font-bold text-white truncate">
+                      {p.name || '—'}
+                    </CardTitle>
+                    <div className="text-sm text-gray-400 font-mono truncate">
+                      {formatCurrency(p.price)}
                     </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-lg font-bold text-white truncate">
-                    {p.name || '—'}
-                  </CardTitle>
-                  <div className="text-sm text-gray-400 font-mono truncate">
-                    {formatCurrency(p.price)}
                   </div>
-                </div>
-                <div className="flex">
-                  <div className="text-sm p-2 bg-red-400 text-black mt-1">
-                    Category: {p.category}
+                  <div className="flex">
+                    <div className="text-sm p-2 bg-red-400 text-black mt-1">
+                      Category: {p.category}
+                    </div>
                   </div>
-                </div>
-                <p className="text-sm text-gray-500 mt-2 flex-grow">
-                  {p.description}
-                </p>
-              </CardContent>
-              <CardFooter className="p-4 flex flex-col gap-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      p.isFeatured
-                        ? 'bg-green-900 text-green-300'
-                        : 'bg-gray-800 text-gray-400'
-                    }`}
-                  >
-                    {p.isFeatured ? 'Featured' : 'Not Featured'}
-                  </span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      p.isAvailable
-                        ? 'bg-green-900 text-green-300'
-                        : 'bg-yellow-900 text-yellow-300'
-                    }`}
-                  >
-                    {p.isAvailable ? 'Available' : 'Unavailable'}
-                  </span>
-                  <span className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-300">
-                    Stock: {p.stock}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    aria-label={`Update ${p.name}`}
-                    onClick={() => {
-                      setSelectedProduct(p);
-                      setUpdateOpen(true);
-                    }}
-                    className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
-                  >
-                    Update
-                  </Button>
+                  <p className="text-sm text-gray-500 mt-2 flex-grow">
+                    {p.description}
+                  </p>
+                </CardContent>
+                <CardFooter className="p-4 flex flex-col gap-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        p.isFeatured
+                          ? 'bg-green-900 text-green-300'
+                          : 'bg-gray-800 text-gray-400'
+                      }`}
+                    >
+                      {p.isFeatured ? 'Featured' : 'Not Featured'}
+                    </span>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        p.isAvailable
+                          ? 'bg-green-900 text-green-300'
+                          : 'bg-yellow-900 text-yellow-300'
+                      }`}
+                    >
+                      {p.isAvailable ? 'Available' : 'Unavailable'}
+                    </span>
+                    <span className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-300">
+                      Stock: {p.stock}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      aria-label={`Update ${p.name}`}
+                      onClick={() => {
+                        setSelectedProduct(p);
+                        setUpdateOpen(true);
+                      }}
+                      className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
+                    >
+                      Update
+                    </Button>
 
-                  <Button
-                    aria-label={`Delete ${p.name}`}
-                    onClick={() => {
-                      setSelectedProduct(p);
-                      setDeleteOpen(true);
-                    }}
-                    className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                    <Button
+                      aria-label={`Delete ${p.name}`}
+                      onClick={() => {
+                        setSelectedProduct(p);
+                        setDeleteOpen(true);
+                      }}
+                      className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
       </CardContent>
       <Lightbox
         open={lightboxOpen}
