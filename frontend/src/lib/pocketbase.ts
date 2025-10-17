@@ -115,7 +115,11 @@ export async function getProductsByCategory(
       const data = res.data as PBList<Product>;
       if (data.items && data.items.length > 0) return data;
     } catch (err) {
-      console.error('Error fetching products for category', categoryId, err);
+      console.error(
+        'Error fetching products for category',
+        categoryId,
+        err
+      );
     }
   }
 
@@ -143,7 +147,12 @@ export async function getProducts(opts?: {
 export type Order = {
   id: string;
   user: string;
-  status: 'Cancelled' | 'Shipped' | 'In process' | 'Finish' | 'pending';
+  status:
+    | 'Cancelled'
+    | 'Shipped'
+    | 'In process'
+    | 'Finish'
+    | 'pending';
   orderDate: string;
   totalAmount: number;
   shippingAddress: any;
@@ -239,10 +248,6 @@ export async function authWithPassword(
         (typeof raw.profileImage === 'string' && raw.profileImage) ||
         (typeof raw.avatar === 'string' && raw.avatar) ||
         undefined,
-      profileImage:
-        (typeof raw.profileImage === 'string' && raw.profileImage) ||
-        (typeof raw.avatar === 'string' && raw.avatar) ||
-        undefined,
       verified: !!(raw.verified ?? raw.isVerified ?? false),
       lastKnownLocation:
         (typeof raw.lastKnownLocation === 'string' &&
@@ -286,7 +291,9 @@ export async function logout() {
   }
 }
 
-export async function getFeaturedProducts(): Promise<PBList<Product>> {
+export async function getFeaturedProducts(): Promise<
+  PBList<Product>
+> {
   const params = { filter: `isFeatured=true`, expand: 'category' };
   const res = await pb.get('/api/collections/products/records', {
     params,
