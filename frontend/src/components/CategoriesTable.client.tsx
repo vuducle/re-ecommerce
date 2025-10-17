@@ -201,32 +201,32 @@ export default function CategoriesTable({
           </div>
           {mappedCategories.length > 0 && (
             <div className="flex items-center flex-wrap gap-2">
-            <label className="text-xs text-gray-400">Show</label>
-            <select
-              value={pageSize}
-              onChange={(e) =>
-                handlePageSizeChange(Number(e.target.value))
-              }
-              className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-            <span className="text-xs text-gray-400">per page</span>
-            <div className="ml-3">
-              <input
-                type="search"
-                placeholder="Search name, slug"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-full sm:w-64"
-              />
+              <label className="text-xs text-gray-400">Show</label>
+              <select
+                value={pageSize}
+                onChange={(e) =>
+                  handlePageSizeChange(Number(e.target.value))
+                }
+                className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-xs text-gray-400">per page</span>
+              <div className="ml-3">
+                <input
+                  type="search"
+                  placeholder="Search name, slug"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1 w-full sm:w-64"
+                />
+              </div>
             </div>
-          </div>
           )}
 
           {mappedCategories.length > 0 && (
@@ -269,71 +269,71 @@ export default function CategoriesTable({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-          {pagedCategoriesAll.map((c) => (
-            <Card
-              key={c.id}
-              className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4"
-            >
-              <CardHeader className="p-0">
-                <div className="flex-shrink-0">
-                  {c.imageUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLightboxIndex(0);
-                        setLightboxOpen(true);
-                      }}
-                      className="rounded-lg overflow-hidden w-full h-48 relative"
-                    >
-                      <Image
-                        src={c.imageUrl}
-                        alt={c.name || 'Category Image'}
-                        layout="fill"
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </button>
-                  ) : (
-                    <div className="w-full h-48 rounded-lg bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
-                      RE
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <CardTitle className="text-lg font-bold text-white truncate">
-                  {c.name || '—'}
-                </CardTitle>
-                <p className="text-sm text-gray-500 mt-2 flex-grow">
-                  {c.description}
-                </p>
-              </CardContent>
-              <CardFooter className="flex gap-2">
-                <Button
-                  aria-label={`Update ${c.name}`}
-                  onClick={() => {
-                    setSelectedCategory(c);
-                    setUpdateOpen(true);
-                  }}
-                  className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
-                >
-                  Update
-                </Button>
+            {pagedCategoriesAll.map((c) => (
+              <Card
+                key={c.id}
+                className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-2 sm:p-4 flex flex-col gap-4"
+              >
+                <CardHeader className="p-0">
+                  <div className="flex-shrink-0">
+                    {c.imageUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLightboxIndex(0);
+                          setLightboxOpen(true);
+                        }}
+                        className="rounded-lg overflow-hidden w-full h-48 relative"
+                      >
+                        <Image
+                          src={c.imageUrl}
+                          alt={c.name || 'Category Image'}
+                          layout="fill"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </button>
+                    ) : (
+                      <div className="w-full h-48 rounded-lg bg-[#0b0b0b] flex items-center justify-center text-gray-400 font-bold">
+                        RE
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <CardTitle className="text-lg font-bold text-white truncate">
+                    {c.name || '—'}
+                  </CardTitle>
+                  <p className="text-sm text-gray-500 mt-2 flex-grow">
+                    {c.description}
+                  </p>
+                </CardContent>
+                <CardFooter className="flex gap-2">
+                  <Button
+                    aria-label={`Update ${c.name}`}
+                    onClick={() => {
+                      setSelectedCategory(c);
+                      setUpdateOpen(true);
+                    }}
+                    className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
+                  >
+                    Update
+                  </Button>
 
-                <Button
-                  aria-label={`Delete ${c.name}`}
-                  onClick={() => {
-                    setSelectedCategory(c);
-                    setDeleteOpen(true);
-                  }}
-                  className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
-                >
-                  Delete
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                  <Button
+                    aria-label={`Delete ${c.name}`}
+                    onClick={() => {
+                      setSelectedCategory(c);
+                      setDeleteOpen(true);
+                    }}
+                    className="px-2 py-1 sm:px-3 sm:py-2 rounded-lg text-sm font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#8b0f0f] to-[#310000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.65)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5"
+                  >
+                    Delete
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
         )}
       </CardContent>
       <Lightbox
