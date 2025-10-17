@@ -229,11 +229,6 @@ export default function ProductsTable({
       </div>
     );
 
-  if (!products || products.length === 0)
-    return (
-      <div className="text-sm text-gray-300">No products found.</div>
-    );
-
   const handlePageSizeChange = (value: number) => {
     setPageSize(value);
     setPage(1);
@@ -264,7 +259,8 @@ export default function ProductsTable({
               Create Product
             </Button>
           </div>
-          <div className="flex items-center flex-wrap gap-2">
+          {mappedProducts.length > 0 && (
+            <div className="flex items-center flex-wrap gap-2">
             <label className="text-xs text-gray-400">Show</label>
             <select
               value={pageSize}
@@ -291,40 +287,48 @@ export default function ProductsTable({
               />
             </div>
           </div>
+          )}
 
-          <div className="flex items-center gap-2 text-xs text-gray-300">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className={`px-2 py-1 rounded ${
-                page <= 1
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'bg-gray-800 hover:bg-gray-700'
-              }`}
-            >
-              Prev
-            </button>
-            <span className="font-mono">
-              {startDisplay}-{end} of {total}
-            </span>
-            <button
-              onClick={() =>
-                setPage((p) => Math.min(totalPages, p + 1))
-              }
-              disabled={page >= totalPages}
-              className={`px-2 py-1 rounded ${
-                page >= totalPages
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'bg-gray-800 hover:bg-gray-700'
-              }`}
-            >
-              Next
-            </button>
-          </div>
+          {mappedProducts.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-gray-300">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className={`px-2 py-1 rounded ${
+                  page <= 1
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                Prev
+              </button>
+              <span className="font-mono">
+                {startDisplay}-{end} of {total}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={page >= totalPages}
+                className={`px-2 py-1 rounded ${
+                  page >= totalPages
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+        {pagedProductsAll.length === 0 ? (
+          <div className="text-sm text-gray-300 text-center py-8">
+            No products found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
           {pagedProductsAll.map((p) => (
             <Card
               key={p.id}
@@ -425,6 +429,7 @@ export default function ProductsTable({
             </Card>
           ))}
         </div>
+        )}
       </CardContent>
       <Lightbox
         open={lightboxOpen}
