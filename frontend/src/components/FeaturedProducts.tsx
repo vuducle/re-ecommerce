@@ -7,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import Image from 'next/image';
 import { Button } from './ui/button';
+import Autoplay from 'embla-carousel-autoplay';
 import Link from 'next/link';
 
 export default function FeaturedProducts() {
@@ -64,6 +65,11 @@ export default function FeaturedProducts() {
           align: 'start',
           loop: true,
         }}
+        plugins={[
+          Autoplay({
+            delay: 2000,
+          }),
+        ]}
         className="w-full"
       >
         <CarouselContent className="items-stretch">
@@ -133,8 +139,14 @@ export default function FeaturedProducts() {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="text-white bg-transparent border-red-500" />
-        <CarouselNext className="text-white bg-transparent border-red-500" />
+        <div className="flex justify-center gap-2 mt-4 md:hidden">
+          <CarouselPrevious className="static text-white bg-transparent border-red-500" />
+          <CarouselNext className="static text-white bg-transparent border-red-500" />
+        </div>
+        <div className="hidden md:block">
+          <CarouselPrevious className="text-white bg-transparent border-red-500" />
+          <CarouselNext className="text-white bg-transparent border-red-500" />
+        </div>
       </Carousel>
     </div>
   );

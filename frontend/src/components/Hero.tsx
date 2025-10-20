@@ -21,7 +21,10 @@ export default function Hero() {
               </h1>
             </div>
 
-            <p className="max-w-xl text-lg text-muted-foreground animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <p
+              className="max-w-xl text-lg text-muted-foreground animate-fade-in-up"
+              style={{ animationDelay: '0.2s' }}
+            >
               Welcome, stranger. The streets are... unfriendly
               tonight. Leon's running low on bullets, bandages, and
               the sort of oddities that keep you breathing between
@@ -30,27 +33,19 @@ export default function Hero() {
             </p>
 
             <div className="flex gap-3 items-center flex-wrap">
-              <Button
-                size="lg"
-                className="px-4 py-3 rounded-lg text-base font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
-              >
-                Load up
-              </Button>
-
-              <Link href="/category/survival">
+              <Link href="/category">
                 <Button
-                  variant="destructive"
                   size="lg"
-                  className="px-4 py-3 rounded-lg text-base font-semibold uppercase tracking-wider"
+                  className="px-4 py-3 rounded-lg text-base font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-[#6f0f0f] to-[#2b0404] border border-[#3a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#8b1515] hover:to-[#3b0505] active:translate-y-0.5"
                 >
-                  Survival
+                  Load up
                 </Button>
               </Link>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <Card className="col-span-2 sm:col-span-1 bg-card border-destructive/50">
-                <CardContent>
+                <CardContent className="pt-4">
                   <CardTitle>Ammo & Mags</CardTitle>
                   <CardDescription>
                     Pistols, shotguns, and specialty rounds. Keep Leon
@@ -60,7 +55,7 @@ export default function Hero() {
               </Card>
 
               <Card className="col-span-2 sm:col-span-2 bg-card border-destructive/50">
-                <CardContent>
+                <CardContent className="pt-4">
                   <CardTitle>Herbs & Remedies</CardTitle>
                   <CardDescription>
                     Green, red, mixed — heal fast, improvise smarter.

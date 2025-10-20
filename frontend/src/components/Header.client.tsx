@@ -35,13 +35,21 @@ export default function HeaderClient({ categories }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
   const auth = useSelector((s: RootState) => s.auth);
-  const { items: cartItems } = useSelector((state: RootState) => state.cart);
-  const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
-  const itemCount = Object.values(cartItems).reduce((sum, item) => sum + item.quantity, 0);
+  const { items: cartItems } = useSelector(
+    (state: RootState) => state.cart
+  );
+  const { items: wishlistItems } = useSelector(
+    (state: RootState) => state.wishlist
+  );
+  const itemCount = Object.values(cartItems).reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   // theme is forced to dark globally
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const { showNotification } = useNotification();
 
@@ -202,7 +210,10 @@ export default function HeaderClient({ categories }: Props) {
             </nav>
 
             <div className="flex items-center">
-              <Link href="/inventory" className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2">
+              <Link
+                href="/inventory"
+                className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2"
+              >
                 <ShoppingCart size={20} />
                 {itemCount > 0 && (
                   <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
@@ -211,7 +222,10 @@ export default function HeaderClient({ categories }: Props) {
                 )}
               </Link>
 
-              <Link href="/wishlist" className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2">
+              <Link
+                href="/wishlist"
+                className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2"
+              >
                 <Heart size={20} />
                 {wishlistItems.length > 0 && (
                   <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
@@ -323,7 +337,6 @@ export default function HeaderClient({ categories }: Props) {
                 </div>
               )}
             </div>
-
           </div>
         </div>
 
@@ -359,7 +372,7 @@ export default function HeaderClient({ categories }: Props) {
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/6">
                 <div className="flex items-center gap-3">
                   <Image
-                    src="/vercel.svg"
+                    src="/logo.png"
                     alt="RE"
                     width={28}
                     height={28}
@@ -394,18 +407,32 @@ export default function HeaderClient({ categories }: Props) {
                 ))}
 
                 <div className="pt-2">
-                  <div className="space-y-2">
-                    {categories.map((c) => (
-                      <Link
-                        key={c.id}
-                        href={`/category/${c.slug}`}
-                        onClick={closeMenu}
-                        className="block text-lg text-gray-200 py-2 px-2 rounded hover:bg-white/3"
-                      >
-                        {c.name}
-                      </Link>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => setCategoriesOpen((prev) => !prev)}
+                    className="flex items-center justify-between w-full text-lg font-semibold text-gray-200 py-3 px-2 rounded hover:bg-white/3"
+                  >
+                    <span>Categories</span>
+                    <ChevronDown
+                      size={20}
+                      className={`transform transition-transform ${
+                        categoriesOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  {categoriesOpen && (
+                    <div className="pl-4 space-y-2">
+                      {categories.map((c) => (
+                        <Link
+                          key={c.id}
+                          href={`/category/${c.slug}`}
+                          onClick={closeMenu}
+                          className="block text-lg text-gray-200 py-2 px-2 rounded hover:bg-white/3"
+                        >
+                          {c.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* <div className="pt-2">

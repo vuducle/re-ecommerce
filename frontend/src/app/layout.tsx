@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     default: 'RE-Commerce',
   },
   description: 'An e-commerce site with a Resident Evil 4 theme.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -47,7 +50,9 @@ export default function RootLayout({
       >
         <div
           className="fixed inset-0 z-[-1] opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"
-          style={{ backgroundImage: "url('/img/re4-background.jpg')" }}
+          style={{
+            backgroundImage: "url('/img/re4-background.jpg')",
+          }}
           aria-hidden="true"
         />
         <ReduxProvider>
@@ -59,7 +64,7 @@ export default function RootLayout({
                 <main className="flex-1">{children}</main>
                 <Footer />
                 <REAudio />
-              <FloatingActionButtons />
+                <FloatingActionButtons />
               </div>
               <CookieDialog />
             </NotificationProvider>
