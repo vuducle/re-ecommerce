@@ -25,11 +25,12 @@ export default function OrdersTable({
   loading,
   error,
 }: Props) {
+  const [selectedOrder, setSelectedOrder] = useState<MappedOrder | null>(null);
 
   const mappedOrders: MappedOrder[] = (orders ?? []).map((o) => {
     const id = (o.id ?? o._id ?? o.recordId ?? '') as string;
     const user = (o.expand?.user as any)?.name || (o.user as string) || '';
-    const total = (o.total as number) || 0;
+    const total = (o.totalAmount as number) || 0;
     const items = (o.items as any[]) || [];
     const status = (o.status as string) || 'pending';
     const shippingAddress = (o.shippingAddress as any) || {};
@@ -220,10 +221,12 @@ export default function OrdersTable({
                   </span>
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400">
-                  {o.items.length}
+                  <button onClick={() => setSelectedOrder(o)} className="text-blue-400 hover:underline">
+                    {o.items.length} items
+                  </button>
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400">
-                  {`${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.zip}`}
+                  {o.shippingAddress ? `${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.zip}` : ''}
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400 font-mono">
                   {o.created}
@@ -233,6 +236,35 @@ export default function OrdersTable({
           </tbody>
         </table>
       </div>
+
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-6 max-w-lg w-full">
+            <h3 className="text-lg font-semibold text-white">
+              Order Items
+            </h3>
+            <div className="mt-4">
+              <ul>
+                {selectedOrder.items.map((item, index) => (
+                  <li key={index} className="flex justify-between py-2 border-b border-[#2a0808]">
+                    <span>{item.name} (x{item.quantity})</span>
+                    <span>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                aria-label="Close"
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-gray-300 bg-[#0b0b0b] border border-[#2a2a2a] hover:bg-[#141414] focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
