@@ -3,10 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Loading from './ui/Loading';
 
+import { useNotification } from '../context/NotificationContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+
 type Props = {
   orders: Array<Record<string, unknown>> | null;
   loading?: boolean;
   error?: string | null;
+  onOrderUpdated?: () => void;
 };
 
 type MappedOrder = {
@@ -24,12 +29,89 @@ export default function OrdersTable({
   orders,
   loading,
   error,
+  onOrderUpdated,
 }: Props) {
+  const { showNotification } = useNotification();
+  const { user, token } = useSelector(
+    (state: RootState) => state.auth
+  );
   const [selectedOrder, setSelectedOrder] = useState<MappedOrder | null>(null);
+
+  const statusColors: { [key: string]: string } = {
+    pending: 'bg-yellow-900 text-yellow-300',
+    cancelled: 'bg-red-900 text-red-300',
+    shipped: 'bg-blue-900 text-blue-300',
+    'in process': 'bg-indigo-900 text-indigo-300',
+    finish: 'bg-green-900 text-green-300',
+  };
+
+    const getStatusColor = (status: string) => {
+
+      const normalizedStatus = status.trim().toLowerCase();
+
+      return statusColors[normalizedStatus] || 'bg-gray-900 text-gray-300';
+
+    };
+  const handleUpdateStatus = async (
+    orderId: string,
+    status: string
+  ) => {
+    if (!token || !user) return;
+
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${token}`,
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ id: orderId, status }),
+      });
+
+      if (res.ok) {
+        showNotification(
+          'Order status updated successfully',
+          'success'
+        );
+        onOrderUpdated?.();
+      } else {
+        const data = await res.json();
+        showNotification(
+          data.error || 'Failed to update order status',
+          'error'
+        );
+      }
+    } catch {
+      showNotification(
+        'An error occurred while updating the order status',
+        'error'
+      );
+    }
+  };
 
   const mappedOrders: MappedOrder[] = (orders ?? []).map((o) => {
     const id = (o.id ?? o._id ?? o.recordId ?? '') as string;
-    const user = (o.expand?.user as any)?.name || (o.user as string) || '';
+    const expanded = o.expand as Record<string, unknown> | undefined;
+    let userName = '';
+    if (
+      expanded &&
+      typeof expanded === 'object' &&
+      'user' in expanded
+    ) {
+      const user = expanded.user as unknown;
+      if (
+        user &&
+        typeof user === 'object' &&
+        'name' in (user as Record<string, unknown>)
+      ) {
+        const name = (user as Record<string, unknown>).name;
+        if (typeof name === 'string') userName = name;
+      }
+    }
+    if (!userName) {
+      userName = (o.user as string) || '';
+    }
     const total = (o.totalAmount as number) || 0;
     const items = (o.items as any[]) || [];
     const status = (o.status as string) || 'pending';
@@ -47,7 +129,7 @@ export default function OrdersTable({
 
     return {
       id,
-      user,
+      user: userName,
       total,
       items,
       status,
@@ -78,8 +160,7 @@ export default function OrdersTable({
       const user = (o.user ?? '') as string;
       const id = (o.id ?? '') as string;
       return (
-        user.toLowerCase().includes(q) ||
-        id.toLowerCase().includes(q)
+        user.toLowerCase().includes(q) || id.toLowerCase().includes(q)
       );
     });
   }, [mappedOrders, debouncedQuery]);
@@ -192,6 +273,7 @@ export default function OrdersTable({
               <th className="px-3 py-2">Items</th>
               <th className="px-3 py-2">Shipping Address</th>
               <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -211,25 +293,41 @@ export default function OrdersTable({
                 </td>
                 <td className="px-3 py-3 align-middle">
                   <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      o.status === 'paid'
-                        ? 'bg-green-900 text-green-300'
-                        : 'bg-yellow-900 text-yellow-300'
-                    }`}
+                    className={`text-xs px-2 py-1 rounded ${getStatusColor(
+                      o.status
+                    )}`}
                   >
                     {o.status}
                   </span>
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400">
-                  <button onClick={() => setSelectedOrder(o)} className="text-blue-400 hover:underline">
+                  <button
+                    onClick={() => setSelectedOrder(o)}
+                    className="text-blue-400 hover:underline"
+                  >
                     {o.items.length} items
                   </button>
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400">
-                  {o.shippingAddress ? `${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.zip}` : ''}
+                  {o.shippingAddress
+                    ? `${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.zip}`
+                    : ''}
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400 font-mono">
                   {o.created}
+                </td>
+                <td className="px-3 py-3 align-middle">
+                  <select
+                    value={o.status}
+                    onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
+                    className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="In process">In process</option>
+                    <option value="Finish">Finish</option>
+                  </select>
                 </td>
               </tr>
             ))}
@@ -246,9 +344,19 @@ export default function OrdersTable({
             <div className="mt-4">
               <ul>
                 {selectedOrder.items.map((item, index) => (
-                  <li key={index} className="flex justify-between py-2 border-b border-[#2a0808]">
-                    <span>{item.name} (x{item.quantity})</span>
-                    <span>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}</span>
+                  <li
+                    key={index}
+                    className="flex justify-between py-2 border-b border-[#2a0808]"
+                  >
+                    <span>
+                      {item.name} (x{item.quantity})
+                    </span>
+                    <span>
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                      }).format(item.price)}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -265,6 +373,15 @@ export default function OrdersTable({
           </div>
         </div>
       )}
+
+      <div className="hidden">
+        <span className="bg-yellow-900 text-yellow-300"></span>
+        <span className="bg-red-900 text-red-300"></span>
+        <span className="bg-blue-900 text-blue-300"></span>
+        <span className="bg-indigo-900 text-indigo-300"></span>
+        <span className="bg-green-900 text-green-300"></span>
+        <span className="bg-gray-900 text-gray-300"></span>
+      </div>
     </>
   );
 }

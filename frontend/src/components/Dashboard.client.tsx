@@ -388,6 +388,7 @@ export default function DashboardClient() {
                   orders={orders}
                   loading={loadingOrders}
                   error={ordersError}
+                  onOrderUpdated={fetchOrders}
                 />
               </CardContent>
             </Card>
