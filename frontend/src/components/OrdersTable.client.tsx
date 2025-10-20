@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Loading from './ui/Loading';
+import { FaTrash } from 'react-icons/fa';
 
 import { useNotification } from '../context/NotificationContext';
 import { useSelector } from 'react-redux';
@@ -36,6 +37,7 @@ export default function OrdersTable({
     (state: RootState) => state.auth
   );
   const [selectedOrder, setSelectedOrder] = useState<MappedOrder | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<MappedOrder | null>(null);
 
   const statusColors: { [key: string]: string } = {
     pending: 'bg-yellow-900 text-yellow-300',
@@ -52,43 +54,70 @@ export default function OrdersTable({
       return statusColors[normalizedStatus] || 'bg-gray-900 text-gray-300';
 
     };
-  const handleUpdateStatus = async (
-    orderId: string,
-    status: string
-  ) => {
-    if (!token || !user) return;
-
-    try {
-      const res = await fetch('/api/admin/orders', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization: `Bearer ${token}`,
-          'x-user-id': user.id,
-        },
-        body: JSON.stringify({ id: orderId, status }),
-      });
-
-      if (res.ok) {
+    const handleUpdateStatus = async (orderId: string, status: string) => {
+      if (!token || !user) return;
+  
+      try {
+        const res = await fetch('/api/admin/orders', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: `Bearer ${token}`,
+            'x-user-id': user.id,
+          },
+          body: JSON.stringify({ id: orderId, status }),
+        });
+  
+        if (res.ok) {
+          showNotification('Order status updated successfully', 'success');
+          onOrderUpdated?.();
+        } else {
+          const data = await res.json();
+          showNotification(
+            data.error || 'Failed to update order status',
+            'error'
+          );
+        }
+      } catch {
         showNotification(
-          'Order status updated successfully',
-          'success'
-        );
-        onOrderUpdated?.();
-      } else {
-        const data = await res.json();
-        showNotification(
-          data.error || 'Failed to update order status',
+          'An error occurred while updating the order status',
           'error'
         );
       }
-    } catch {
-      showNotification(
-        'An error occurred while updating the order status',
-        'error'
-      );
-    }
-  };
+    };
+  
+    const handleDeleteOrder = async () => {
+      if (!orderToDelete || !token || !user) return;
+  
+      try {
+        const res = await fetch('/api/admin/orders', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: `Bearer ${token}`,
+            'x-user-id': user.id,
+          },
+          body: JSON.stringify({ id: orderToDelete.id }),
+        });
+  
+        if (res.ok) {
+          showNotification('Order deleted successfully', 'success');
+          onOrderUpdated?.();
+          setOrderToDelete(null);
+        } else {
+          const data = await res.json();
+          showNotification(
+            data.error || 'Failed to delete order',
+            'error'
+          );
+        }
+      } catch {
+        showNotification(
+          'An error occurred while deleting the order',
+          'error'
+        );
+      }
+    };
 
   const mappedOrders: MappedOrder[] = (orders ?? []).map((o) => {
     const id = (o.id ?? o._id ?? o.recordId ?? '') as string;
@@ -317,17 +346,26 @@ export default function OrdersTable({
                   {o.created}
                 </td>
                 <td className="px-3 py-3 align-middle">
-                  <select
-                    value={o.status}
-                    onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
-                    className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="Cancelled">Cancelled</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="In process">In process</option>
-                    <option value="Finish">Finish</option>
-                  </select>
+                  <div className="flex gap-2">
+                    <select
+                      value={o.status}
+                      onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
+                      className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="Cancelled">Cancelled</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="In process">In process</option>
+                      <option value="Finish">Finish</option>
+                    </select>
+                    <button
+                      onClick={() => setOrderToDelete(o)}
+                      aria-label="Delete Order"
+                      className="inline-flex items-center p-2 rounded-md text-sm font-semibold text-white bg-gradient-to-b from-[#8b0f0f] to-[#3b0000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-red-600/40 transition"
+                    >
+                      <FaTrash className="h-4 w-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -382,6 +420,35 @@ export default function OrdersTable({
         <span className="bg-green-900 text-green-300"></span>
         <span className="bg-gray-900 text-gray-300"></span>
       </div>
+
+      {orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-[#0b0b0b] border border-[#2a0808] rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-white">
+              Delete Order
+            </h3>
+            <p className="mt-2 text-sm text-gray-300">
+              Are you sure you want to delete this order?
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setOrderToDelete(null)}
+                aria-label="Cancel delete"
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-gray-300 bg-[#0b0b0b] border border-[#2a2a2a] hover:bg-[#141414] focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteOrder}
+                aria-label="Confirm delete"
+                className="inline-flex items-center px-4 py-2 rounded-md text-sm font-semibold text-white bg-gradient-to-b from-[#8b0f0f] to-[#3b0000] border border-[#2a0000] shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-[#a21a1a] hover:to-[#5a0000] active:translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-red-600/40 transition"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
