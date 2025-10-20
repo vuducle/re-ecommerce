@@ -197,37 +197,34 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
       });
     }
 
-    const lineParams = [
-      {
-        price: info.body.price.id,
-        quantity: info.body.quantity || 1, // Default to 1 if quantity is not provided
-      },
-    ];
+    const items = info.body.items;
 
-    const customerUpdateParams = {
-      address: 'auto',
-    };
-
-    let sessionParams = {
-      customer: customerId,
-      billing_address_collection: 'required',
-      customer_update: customerUpdateParams,
-      allow_promotion_codes: true,
-      success_url: 'https://your-success-url.com', // Replace with actual success URL
-      cancel_url: 'https://your-cancel-url.com', // Replace with actual cancel URL
-      line_items: lineParams.map((item) => ({
-        price: item.price,
-        quantity: item.quantity,
-      })),
-    };
-
-    if (info.body.price.type === 'recurring') {
-      sessionParams.mode = 'subscription';
-    } else if (info.body.price.type === 'one_time') {
-      sessionParams.mode = 'payment';
-    } else {
-      throw new Error('Invalid price type');
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return e.json(400, { message: 'No items in cart' });
     }
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    const successUrl = isProduction
+      ? `${process.env.FRONTEND_URL}/checkout/success` // IMPORTANT: Replace with your production success URL
+      : 'http://localhost:3000/checkout/success';
+    const cancelUrl = isProduction
+      ? `${process.env.FRONTEND_URL}/checkout` // IMPORTANT: Replace with your production cancel URL
+      : 'http://localhost:3000/checkout';
+
+    let body = `customer=${encodeURIComponent(
+      customerId
+    )}&billing_address_collection=required&success_url=${encodeURIComponent(
+      successUrl
+    )}&cancel_url=${encodeURIComponent(cancelUrl)}&mode=payment`;
+
+    items.forEach((item, i) => {
+      body += `&line_items[${i}][price_data][currency]=vnd`;
+      body += `&line_items[${i}][price_data][product_data][name]=${encodeURIComponent(
+        item.name
+      )}`;
+      body += `&line_items[${i}][price_data][unit_amount]=${item.price}`;
+      body += `&line_items[${i}][quantity]=${item.quantity}`;
+    });
 
     try {
       const response = await $http.send({
@@ -238,36 +235,7 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
           'Content-Type': 'application/x-www-form-urlencoded',
           Authorization: `Bearer ${apiKey}`,
         },
-        body: Object.entries(sessionParams)
-          .flatMap(([key, value]) => {
-            if (Array.isArray(value)) {
-              return value
-                .map((v, i) =>
-                  Object.entries(v)
-                    .map(
-                      ([subKey, subValue]) =>
-                        `${encodeURIComponent(
-                          `${key}[${i}][${subKey}]`
-                        )}=${encodeURIComponent(subValue)}`
-                    )
-                    .join('&')
-                )
-                .join('&');
-            } else if (typeof value === 'object' && value !== null) {
-              return Object.entries(value)
-                .map(
-                  ([subKey, subValue]) =>
-                    `${encodeURIComponent(
-                      `${key}[${subKey}]`
-                    )}=${encodeURIComponent(subValue)}`
-                )
-                .join('&');
-            }
-            return `${encodeURIComponent(key)}=${encodeURIComponent(
-              value
-            )}`;
-          })
-          .join('&'),
+        body: body,
       });
       return e.json(200, response.json);
     } catch (error) {
