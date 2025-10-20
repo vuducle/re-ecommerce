@@ -11,6 +11,7 @@ import pb, { buildFileUrl } from '../lib/pocketbase';
 import UsersTable from './UsersTable.client';
 import ProductsTable from './ProductsTable.client';
 import CategoriesTable from './CategoriesTable.client';
+import OrdersTable from './OrdersTable.client';
 import {
   FaUsers,
   FaBox,
@@ -49,6 +50,13 @@ export default function DashboardClient() {
   const [categoriesError, setCategoriesError] = React.useState<
     string | null
   >(null);
+  const [orders, setOrders] = React.useState<Array<
+    Record<string, unknown>
+  > | null>(null);
+  const [loadingOrders, setLoadingOrders] = React.useState(false);
+  const [ordersError, setOrdersError] = React.useState<string | null>(
+    null
+  );
 
   const fetchUsers = React.useCallback(async () => {
     setLoadingUsers(true);
@@ -150,6 +158,42 @@ export default function DashboardClient() {
     }
   }, []);
 
+  const fetchOrders = React.useCallback(async () => {
+    setLoadingOrders(true);
+    setOrdersError(null);
+    try {
+      if (auth.user?.isAdmin) {
+        const apiRes = await fetch('/api/admin/orders', {
+          headers: {
+            Authorization: auth.token ? `Bearer ${auth.token}` : '',
+            'x-user-id': auth.user.id,
+          },
+        });
+        if (!apiRes.ok) {
+          const txt = await apiRes.text();
+          throw new Error(`admin api: ${apiRes.status} ${txt}`);
+        }
+        const json = await apiRes.json();
+        setOrders(
+          (json.items ?? json) as Array<Record<string, unknown>>
+        );
+      } else {
+        // Non-admins can only see their own orders.
+        // This is not implemented yet, but we can add it later.
+        setOrders([]);
+      }
+    } catch (err: unknown) {
+      const maybeErr = err as { response?: { data?: unknown } };
+      if (maybeErr.response?.data) {
+        setOrdersError(JSON.stringify(maybeErr.response.data));
+      } else {
+        setOrdersError(String(err));
+      }
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, [auth.token, auth.user?.id, auth.user?.isAdmin]);
+
   React.useEffect(() => {
     if (tab === 'users') {
       fetchUsers();
@@ -157,8 +201,10 @@ export default function DashboardClient() {
       fetchProducts();
     } else if (tab === 'categories') {
       fetchCategories();
+    } else if (tab === 'orders') {
+      fetchOrders();
     }
-  }, [tab, fetchUsers, fetchProducts, fetchCategories]);
+  }, [tab, fetchUsers, fetchProducts, fetchCategories, fetchOrders]);
 
   if (!auth.user) return null;
 
@@ -338,10 +384,11 @@ export default function DashboardClient() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-base text-red-200/70">
-                  Placeholder — add order management features here
-                  later.
-                </div>
+                <OrdersTable
+                  orders={orders}
+                  loading={loadingOrders}
+                  error={ordersError}
+                />
               </CardContent>
             </Card>
           )}
