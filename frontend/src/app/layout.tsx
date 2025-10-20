@@ -3,11 +3,13 @@ import { Geist, Geist_Mono, Orbitron } from 'next/font/google';
 import './globals.css';
 import Header from '../components/Header';
 import ReduxProvider from '../components/ReduxProvider.client';
+import { MobileMenuProvider } from '../context/MobileMenuContext';
 import { NotificationProvider } from '../context/NotificationContext';
 import Notification from '../components/Notification';
 import REAudio from '@/components/REAudio.client';
 import Footer from '../components/Footer';
 import CookieDialog from '@/components/CookieDialog.client';
+import FloatingActionButtons from '@/components/FloatingActionButtons.client';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -44,16 +46,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} antialiased`}
       >
         <ReduxProvider>
-          <NotificationProvider>
-            <Notification />
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
-              <REAudio />
-            </div>
-            <CookieDialog />
-          </NotificationProvider>
+          <MobileMenuProvider>
+            <NotificationProvider>
+              <Notification />
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-1">{children}</main>
+                <Footer />
+                <REAudio />
+              <FloatingActionButtons />
+              </div>
+              <CookieDialog />
+            </NotificationProvider>
+          </MobileMenuProvider>
         </ReduxProvider>
       </body>
     </html>

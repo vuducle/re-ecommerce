@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState, AppDispatch } from '../store';
 import { clearAuth } from '../store/slices/authSlice';
 import { logout as pbLogout, buildFileUrl } from '../lib/pocketbase';
-import { ChevronDown, ShoppingCart } from 'lucide-react';
+import { ChevronDown, ShoppingCart, Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
@@ -15,6 +15,7 @@ import { cn } from '../lib/utils';
 import { usePathname } from 'next/navigation';
 import type { Category } from '../lib/pocketbase';
 import { useNotification } from '../context/NotificationContext';
+import { useMobileMenu } from '@/context/MobileMenuContext';
 
 type Props = {
   categories: Category[];
@@ -24,16 +25,18 @@ const DEFAULT_NAV = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Inventory', href: '/inventory' },
+  { label: 'Wishlist', href: '/wishlist' },
 ];
 
 export default function HeaderClient({ categories }: Props) {
-  const [open, setOpen] = useState(false);
+  const { isOpen, closeMenu, toggleMenu } = useMobileMenu();
   const pathname = usePathname();
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const lastActiveRef = useRef<HTMLElement | null>(null);
   const auth = useSelector((s: RootState) => s.auth);
   const { items: cartItems } = useSelector((state: RootState) => state.cart);
+  const { items: wishlistItems } = useSelector((state: RootState) => state.wishlist);
   const itemCount = Object.values(cartItems).reduce((sum, item) => sum + item.quantity, 0);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -65,13 +68,13 @@ export default function HeaderClient({ categories }: Props) {
 
   // lock body scroll when mobile menu is open
   useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
+    if (isOpen) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = '';
-  }, [open]);
+  }, [isOpen]);
 
   // focus trap & escape
   useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       lastActiveRef.current?.focus?.();
       return;
     }
@@ -79,7 +82,7 @@ export default function HeaderClient({ categories }: Props) {
     setTimeout(() => closeButtonRef.current?.focus(), 50);
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') closeMenu();
       if (e.key === 'Tab') {
         const panel = panelRef.current;
         if (!panel) return;
@@ -101,7 +104,7 @@ export default function HeaderClient({ categories }: Props) {
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [isOpen]);
 
   return (
     <>
@@ -204,6 +207,15 @@ export default function HeaderClient({ categories }: Props) {
                 {itemCount > 0 && (
                   <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
                     {itemCount}
+                  </span>
+                )}
+              </Link>
+
+              <Link href="/wishlist" className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2">
+                <Heart size={20} />
+                {wishlistItems.length > 0 && (
+                  <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                    {wishlistItems.length}
                   </span>
                 )}
               </Link>
@@ -312,15 +324,6 @@ export default function HeaderClient({ categories }: Props) {
               )}
             </div>
 
-            <div className="md:hidden">
-              <button
-                aria-label={open ? 'Close menu' : 'Open menu'}
-                onClick={() => setOpen((v) => !v)}
-                className="p-2 rounded-md text-gray-200 hover:bg-white/3"
-              >
-                {open ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -329,18 +332,18 @@ export default function HeaderClient({ categories }: Props) {
           <div
             role="dialog"
             aria-modal="true"
-            aria-hidden={!open}
+            aria-hidden={!isOpen}
             className={cn(
               'fixed inset-0 z-[9999] flex items-center justify-center',
-              open ? 'pointer-events-auto' : 'pointer-events-none'
+              isOpen ? 'pointer-events-auto' : 'pointer-events-none'
             )}
           >
             <div
-              onClick={() => setOpen(false)}
+              onClick={closeMenu}
               className={cn(
                 // solid backdrop (not transparent) to avoid underlying bleed-through
                 'absolute inset-0 bg-[#0b0b0b] backdrop-blur-sm transition-opacity duration-300',
-                open ? 'opacity-100' : 'opacity-0'
+                isOpen ? 'opacity-100' : 'opacity-0'
               )}
             />
 
@@ -348,7 +351,7 @@ export default function HeaderClient({ categories }: Props) {
               ref={panelRef}
               className={cn(
                 'relative w-full max-w-sm mx-4 rounded-lg bg-gradient-to-b from-[#0b0b0b] to-[#141414] border border-white/6 overflow-hidden shadow-xl transform transition-all duration-300 z-[10000]',
-                open
+                isOpen
                   ? 'scale-100 opacity-100 translate-y-90'
                   : 'scale-95 opacity-0 translate-y-4'
               )}
@@ -368,7 +371,7 @@ export default function HeaderClient({ categories }: Props) {
                 <div className="flex items-center gap-2">
                   <button
                     ref={closeButtonRef}
-                    onClick={() => setOpen(false)}
+                    onClick={closeMenu}
                     aria-label="Close menu"
                     className="p-2 rounded-md text-gray-200 hover:bg-white/3"
                   >
@@ -383,7 +386,7 @@ export default function HeaderClient({ categories }: Props) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setOpen(false)}
+                    onClick={closeMenu}
                     className="block text-lg font-semibold text-gray-200 py-3 px-2 rounded hover:bg-white/3"
                   >
                     {item.label}
@@ -396,7 +399,7 @@ export default function HeaderClient({ categories }: Props) {
                       <Link
                         key={c.id}
                         href={`/category/${c.slug}`}
-                        onClick={() => setOpen(false)}
+                        onClick={closeMenu}
                         className="block text-lg text-gray-200 py-2 px-2 rounded hover:bg-white/3"
                       >
                         {c.name}
