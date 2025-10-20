@@ -18,12 +18,7 @@ const WishlistPageClient = () => {
   };
 
   return (
-    <main className="scanlines relative max-w-4xl mx-auto py-12 px-6 mt-5 rounded-2xl bg-gradient-to-b from-black/50 via-gray-700/40 to-black/5 backdrop-blur-sm bg-clip-padding border roundness-2xl my-4 border-rose-900/10 shadow-lg ring-1 ring-rose-900/5">
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay bg-cover bg-center"
-        style={{ backgroundImage: "url('/img/re4-background.jpg')" }}
-        aria-hidden="true"
-      />
+    <main className="relative max-w-4xl mx-auto py-12 px-6 mt-5 rounded-2xl bg-gradient-to-b from-black/50 via-gray-700/40 to-black/5 backdrop-blur-sm bg-clip-padding border roundness-2xl my-4 border-rose-900/10 shadow-lg ring-1 ring-rose-900/5">
       <h1 className="text-4xl font-extrabold uppercase tracking-tight text-rose-100 drop-shadow-[0_12px_30px_rgba(0,0,0,0.8)] mb-8">
         My Wishlist
       </h1>
@@ -48,7 +43,7 @@ const WishlistPageClient = () => {
                       height={300}
                       className="rounded-lg object-cover w-full h-48"
                     />
-                    <h2 className="text-lg font-orbitron font-semibold text-rose-100 mt-4">{product.name}</h2>
+                    <h2 className="text-lg font-semibold text-rose-100 mt-4">{product.name}</h2>
                 </Link>
                 {product.price !== undefined && (
                   <div className="text-xl text-red-500 mt-2 font-black">
