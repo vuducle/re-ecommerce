@@ -116,7 +116,11 @@ routerAdd('POST', '/stripe', async (e) => {
           }
         }
 
-        // Auto-download and upload images from Stripe
+        // Save the record first (without images)
+        $app.save(record);
+        $app.logger().info('Product saved:', record.id);
+
+        // Auto-download and upload images from Stripe (after initial save)
         if (product.images && product.images.length > 0) {
           try {
             const uploadedFiles = [];
@@ -179,13 +183,15 @@ routerAdd('POST', '/stripe', async (e) => {
               }
             }
 
-            // Upload all downloaded files to the record
+            // Upload files to the already saved record
             if (uploadedFiles.length > 0) {
               record.set('images', uploadedFiles);
+              $app.save(record);
+              
               $app
                 .logger()
                 .info(
-                  'Uploaded images to product:',
+                  'Images uploaded to product:',
                   uploadedFiles.length
                 );
             }
@@ -194,8 +200,6 @@ routerAdd('POST', '/stripe', async (e) => {
             // Don't fail the entire sync if images fail
           }
         }
-
-        $app.save(record);
         $app.logger().info('Product saved:', record.id);
       } catch (err) {
         $app.logger().error('Error processing product:', err);
