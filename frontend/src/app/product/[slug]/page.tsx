@@ -14,7 +14,9 @@ export async function generateStaticParams() {
 
 type Props = { params: { slug: string } };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.slug);
   return {
     title: product?.name || 'Product',
@@ -94,7 +96,10 @@ export default async function ProductPage({ params }: Props) {
             )}
 
             <div className="mt-6 flex items-center gap-4">
-              <AddToCartButton product={product} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#6b0b0b] to-[#3e0606] px-6 py-3 text-white font-semibold shadow-lg border border-rose-900/30 hover:scale-[1.01] transition-transform">
+              <AddToCartButton
+                product={product}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#6b0b0b] to-[#3e0606] px-6 py-3 text-white font-semibold shadow-lg border border-rose-900/30 hover:scale-[1.01] transition-transform"
+              >
                 Add to cart
               </AddToCartButton>
               <WishlistButton product={product} />

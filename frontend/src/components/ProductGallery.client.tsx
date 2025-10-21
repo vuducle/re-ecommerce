@@ -23,9 +23,9 @@ export default function ProductGallery({ images, alt }: Props) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full ">
       <div
-        className="relative w-full h-80 bg-gradient-to-b from-[#070505] via-[#0b0606] to-[#121212] overflow-hidden rounded-xl ring-1 ring-black/40 shadow-2xl cursor-zoom-in backdrop-blur-[1px] transition-all"
+        className="relative w-full h-80 bg-gradient-to-b scanlines from-[#070505] via-[#0b0606] to-[#121212] overflow-hidden rounded-xl ring-1 ring-black/40 shadow-2xl cursor-zoom-in backdrop-blur-[1px] transition-all"
         onClick={() => setIsOpen(true)}
         role="button"
         aria-label="Open image lightbox"
@@ -43,7 +43,7 @@ export default function ProductGallery({ images, alt }: Props) {
       </div>
 
       {imgs.length > 1 && (
-        <div className="mt-3 flex gap-3 overflow-x-auto items-center">
+        <div className="mt-3 flex gap-3 overflow-x-auto items-center ">
           {imgs.map((src, idx) => (
             <button
               key={idx}
@@ -56,7 +56,7 @@ export default function ProductGallery({ images, alt }: Props) {
               }`}
               style={{ width: 84, height: 84 }}
             >
-              <div className="relative w-full h-full bg-zinc-900/30 ring-1 ring-black/30">
+              <div className="relative w-full h-full bg-zinc-900/30 ring-1 ring-black/30 scanlines">
                 <Image
                   src={src}
                   alt={alt ?? `thumb-${idx}`}

@@ -15,7 +15,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: Props): Promise<Metadata> {
   const category = await getCategoryBySlug(params.slug);
   return {
     title: category?.name || 'Category',
@@ -25,7 +27,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import AddToCartButton from '@/components/AddToCartButton.client';
-
 
 const PB_URL =
   process.env.NEXT_PUBLIC_POCKETBASE_URL ?? 'http://127.0.0.1:8090';
@@ -85,7 +86,7 @@ export default async function CategoryPage({ params }: Props) {
       <div className="max-w-5xl mx-auto px-4 mb-8">
         {/* New hero header: shadcn-ish, RE4 remake inspired */}
         <header className="relative rounded-lg overflow-hidden ring-1 ring-white/6 shadow-2xl bg-gradient-to-br from-neutral-900 via-zinc-900 to-black">
-          <div className="relative h-52 sm:h-64 md:h-72 lg:h-80">
+          <div className="relative h-52 sm:h-64 md:h-72 lg:h-80 scanlines">
             {categoryImageUrl ? (
               <>
                 <Image
@@ -197,8 +198,8 @@ export default async function CategoryPage({ params }: Props) {
                     <div className="bg-gradient-to-br from-[#060606] via-zinc-900 to-[#111111] text-white shadow-2xl border border-rose-900/10 rounded-lg overflow-hidden">
                       <div className="flex flex-col sm:flex-row items-start gap-4 p-5">
                         {/* Image column */}
-                        <div className="shrink-0 w-full sm:w-40">
-                          <div className="h-36 w-full relative rounded-md bg-muted overflow-hidden">
+                        <div className="shrink-0 w-full sm:w-40 ">
+                          <div className="h-36 w-full relative rounded-md bg-muted overflow-hidden scanlines">
                             {imageUrl ? (
                               <Image
                                 src={imageUrl}
