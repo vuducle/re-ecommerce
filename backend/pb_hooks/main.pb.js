@@ -392,57 +392,102 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
       });
     }
 
-    const existingCustomer = $app.findRecordsByFilter(
-      'customer',
-      `user_id = "${userRecord.id}"`
-    );
-
     let customerId;
 
     try {
-      if (existingCustomer.length > 0) {
-        customerId = existingCustomer[0].getString(
-          'stripe_customer_id'
-        );
+      // Try to find existing customer (if customer collection exists)
+      let existingCustomer = null;
+
+      try {
+        const customerCollection =
+          $app.findCollectionByNameOrId('customer');
+        if (customerCollection) {
+          const customers = $app.findRecordsByFilter(
+            'customer',
+            `user_id = "${userRecord.id}"`
+          );
+          existingCustomer =
+            customers.length > 0 ? customers[0] : null;
+        }
+      } catch (collectionErr) {
+        $app
+          .logger()
+          .info(
+            'Customer collection not found, will create Stripe customer without saving locally'
+          );
+      }
+
+      if (existingCustomer) {
+        customerId = existingCustomer.getString('stripe_customer_id');
+        $app.logger().info('Found existing customer:', customerId);
       } else {
         const customerResponse = await $http.send({
           url: 'https://api.stripe.com/v1/customers',
           method: 'POST',
           headers: {
-            Accept: 'application/vnd.api+json',
-            'Content-Type': 'application/vnd.api+json',
+            Accept: 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
             Authorization: `Bearer ${apiKey}`,
           },
-          body: JSON.stringify({
-            email: userRecord.getString('email'),
-            name: userRecord.getString('displayName'),
-            metadata: {
-              pocketbaseUUID: userRecord.id,
-            },
-          }),
+          body: `email=${encodeURIComponent(
+            userRecord.getString('email')
+          )}&name=${encodeURIComponent(
+            userRecord.getString('name') ||
+              userRecord.getString('email')
+          )}&metadata[pocketbaseUUID]=${userRecord.id}`,
         });
 
-        customerId = customerResponse.json.id;
-
-        const collection = $app.findCollectionByNameOrId('customer');
-        let customerRecord;
-        try {
-          customerRecord = $app.findFirstRecordByData(
-            'customer',
-            'stripe_customer_id',
-            customerId
-          );
-        } catch (e) {
-          customerRecord = new Record(collection);
+        if (customerResponse.statusCode !== 200) {
+          $app
+            .logger()
+            .error(
+              'Failed to create Stripe customer:',
+              customerResponse.json
+            );
+          return e.json(400, {
+            message: 'Unable to create Stripe customer',
+            error: customerResponse.json,
+          });
         }
 
-        customerRecord.set('stripe_customer_id', customerId);
-        customerRecord.set('user_id', userRecord.id);
+        customerId = customerResponse.json.id;
+        $app
+          .logger()
+          .info('Created new Stripe customer:', customerId);
 
-        $app.save(customerRecord);
+        // Try to save to customer collection if it exists
+        try {
+          const collection =
+            $app.findCollectionByNameOrId('customer');
+          if (collection) {
+            let customerRecord;
+            try {
+              customerRecord = $app.findFirstRecordByData(
+                'customer',
+                'stripe_customer_id',
+                customerId
+              );
+            } catch (e) {
+              customerRecord = new Record(collection);
+            }
+
+            customerRecord.set('stripe_customer_id', customerId);
+            customerRecord.set('user_id', userRecord.id);
+            $app.save(customerRecord);
+            $app.logger().info('Saved customer to local database');
+          }
+        } catch (saveErr) {
+          // Don't fail if we can't save to customer collection
+          $app
+            .logger()
+            .warn(
+              'Could not save customer locally:',
+              saveErr.message
+            );
+        }
       }
     } catch (error) {
-      $app.logger().error('Customer creation error:', error);
+      $app.logger().error('Customer handling error:', error);
       return e.json(400, {
         message: 'Unable to create or use customer',
         error: error.message,
