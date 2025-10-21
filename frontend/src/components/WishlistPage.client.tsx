@@ -11,7 +11,9 @@ import { Button } from '@/components/ui/button';
 
 const WishlistPageClient = () => {
   const dispatch = useDispatch();
-  const wishlistItems = useSelector((state: RootState) => state.wishlist.items);
+  const wishlistItems = useSelector(
+    (state: RootState) => state.wishlist.items
+  );
 
   const handleRemoveFromWishlist = (productId: string) => {
     dispatch(removeFromWishlist(productId));
@@ -27,23 +29,37 @@ const WishlistPageClient = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {wishlistItems.map((product: Product) => {
-            const imageUrl = (product.images && product.images[0])
-              ? (typeof product.images[0] === 'string' && product.images[0].startsWith('http'))
-                ? product.images[0]
-                : `${process.env.NEXT_PUBLIC_POCKETBASE_URL ?? 'http://127.0.0.1:8090'}/api/files/${product.collectionId}/${product.id}/${encodeURIComponent(String(product.images[0]))}`
-              : '/img/logo.png';
+            const imageUrl =
+              product.images && product.images[0]
+                ? typeof product.images[0] === 'string' &&
+                  product.images[0].startsWith('http')
+                  ? product.images[0]
+                  : `${
+                      process.env.NEXT_PUBLIC_POCKETBASE_URL ??
+                      'http://127.0.0.1:8090'
+                    }/api/files/${product.collectionId}/${
+                      product.id
+                    }/${encodeURIComponent(
+                      String(product.images[0])
+                    )}`
+                : '/img/logo.png';
 
             return (
-              <div key={product.id} className="bg-black/40 backdrop-blur-sm border border-rose-800/10 rounded-2xl p-5 text-sm text-zinc-200 relative overflow-hidden transition-transform hover:scale-105">
+              <div
+                key={product.id}
+                className="bg-black/40 scanlines backdrop-blur-sm border border-rose-800/10 rounded-2xl p-5 text-sm text-zinc-200 relative overflow-hidden transition-transform hover:scale-105"
+              >
                 <Link href={`/product/${product.slug}`}>
-                    <Image
-                      src={imageUrl}
-                      alt={product.name ?? 'Product image'}
-                      width={300}
-                      height={300}
-                      className="rounded-lg object-cover w-full h-48"
-                    />
-                    <h2 className="text-lg font-semibold text-rose-100 mt-4">{product.name}</h2>
+                  <Image
+                    src={imageUrl}
+                    alt={product.name ?? 'Product image'}
+                    width={300}
+                    height={300}
+                    className="rounded-lg object-cover w-full h-48"
+                  />
+                  <h2 className="text-lg font-semibold text-rose-100 mt-4">
+                    {product.name}
+                  </h2>
                 </Link>
                 {product.price !== undefined && (
                   <div className="text-xl text-red-500 mt-2 font-black">

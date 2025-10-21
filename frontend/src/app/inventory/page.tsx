@@ -58,7 +58,7 @@ export default function InventoryPage() {
               key={product.id}
               className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-[#0b0b0b] border border-[#2a0808] rounded-lg"
             >
-              <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 rounded-md overflow-hidden bg-zinc-800">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 scanlines flex-shrink-0 rounded-md overflow-hidden bg-zinc-800">
                 {(() => {
                   const imageUrl =
                     product.images && product.images.length > 0
