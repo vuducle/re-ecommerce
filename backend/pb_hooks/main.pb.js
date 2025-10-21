@@ -187,7 +187,7 @@ routerAdd('POST', '/stripe', async (e) => {
             if (uploadedFiles.length > 0) {
               record.set('images', uploadedFiles);
               $app.save(record);
-              
+
               $app
                 .logger()
                 .info(
