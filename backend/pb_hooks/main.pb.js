@@ -37,26 +37,166 @@ routerAdd('POST', '/stripe', async (e) => {
         let record;
 
         try {
-          // Note: You need to add a 'stripe_product_id' text field to your 'products' collection.
+          // Find existing product by stripe_product_id
           record = $app.findFirstRecordByData(
             'products',
             'stripe_product_id',
             product.id
           );
         } catch (e) {
+          // Create new product if not found
           record = new Record(collection);
           record.set('stripe_product_id', product.id);
         }
 
-        record.set('name', product.name);
+        // Map Stripe product data to PocketBase products collection
+        record.set('name', product.name || '');
         record.set('description', product.description || '');
-        // The 'products' collection has 'price' and 'stock' fields.
-        // The Stripe webhook for products doesn't contain price and stock info in a simple format.
-        // Prices are managed as separate objects in Stripe.
-        // You might need to handle 'price.created' and 'price.updated' events
-        // to update the price in your 'products' collection. I have removed the price handler for now.
+
+        // Generate slug from name if not already set
+        if (!record.get('slug') && product.name) {
+          const slug = product.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+          record.set('slug', slug);
+        }
+
+        // Set product availability based on Stripe's active status
+        record.set('isAvailable', product.active || false);
+
+        // Set featured status from Stripe metadata if available
+        if (product.metadata && product.metadata.featured) {
+          record.set(
+            'isFeatured',
+            product.metadata.featured === 'true'
+          );
+        }
+
+        // Handle default price from Stripe (if default_price is expanded)
+        if (
+          product.default_price &&
+          typeof product.default_price === 'object'
+        ) {
+          const priceInVND = product.default_price.unit_amount || 0;
+          record.set('price', priceInVND);
+        } else if (product.metadata && product.metadata.price) {
+          // Fallback to metadata price if available
+          record.set(
+            'price',
+            parseFloat(product.metadata.price) || 0
+          );
+        }
+
+        // Handle stock from metadata (Stripe doesn't have built-in stock management)
+        if (product.metadata && product.metadata.stock) {
+          record.set(
+            'stock',
+            parseFloat(product.metadata.stock) || 0
+          );
+        }
+
+        // Handle category from metadata
+        if (product.metadata && product.metadata.category_id) {
+          try {
+            const categoryRecord = $app.findRecordById(
+              'categories',
+              product.metadata.category_id
+            );
+            if (categoryRecord) {
+              record.set('category', product.metadata.category_id);
+            }
+          } catch (err) {
+            $app
+              .logger()
+              .warn(
+                'Category not found:',
+                product.metadata.category_id
+              );
+          }
+        }
+
+        // Auto-download and upload images from Stripe
+        if (product.images && product.images.length > 0) {
+          try {
+            const uploadedFiles = [];
+
+            for (let i = 0; i < product.images.length; i++) {
+              const imageUrl = product.images[i];
+
+              try {
+                // Download the image from Stripe
+                const imageResponse = await $http.send({
+                  url: imageUrl,
+                  method: 'GET',
+                });
+
+                if (
+                  imageResponse.statusCode === 200 &&
+                  imageResponse.raw
+                ) {
+                  // Generate a filename from the URL or use a default
+                  const urlParts = imageUrl.split('/');
+                  const originalFilename =
+                    urlParts[urlParts.length - 1] ||
+                    `product-${i}.jpg`;
+
+                  // Determine file extension from URL or content type
+                  let extension = 'jpg';
+                  if (originalFilename.includes('.')) {
+                    extension = originalFilename.split('.').pop();
+                  } else if (imageResponse.headers['content-type']) {
+                    const contentType =
+                      imageResponse.headers['content-type'];
+                    if (contentType.includes('png'))
+                      extension = 'png';
+                    else if (contentType.includes('webp'))
+                      extension = 'webp';
+                    else if (contentType.includes('gif'))
+                      extension = 'gif';
+                  }
+
+                  // Create a unique filename
+                  const filename = `${product.id}-${i}.${extension}`;
+
+                  // Create a file from the downloaded bytes
+                  const file = new File(
+                    [imageResponse.raw],
+                    filename
+                  );
+                  uploadedFiles.push(file);
+
+                  $app.logger().info('Downloaded image:', filename);
+                }
+              } catch (imgErr) {
+                $app
+                  .logger()
+                  .error(
+                    'Failed to download image:',
+                    imageUrl,
+                    imgErr
+                  );
+              }
+            }
+
+            // Upload all downloaded files to the record
+            if (uploadedFiles.length > 0) {
+              record.set('images', uploadedFiles);
+              $app
+                .logger()
+                .info(
+                  'Uploaded images to product:',
+                  uploadedFiles.length
+                );
+            }
+          } catch (err) {
+            $app.logger().error('Error processing images:', err);
+            // Don't fail the entire sync if images fail
+          }
+        }
 
         $app.save(record);
+        $app.logger().info('Product saved:', record.id);
       } catch (err) {
         $app.logger().error('Error processing product:', err);
         throw new BadRequestError(
@@ -64,6 +204,53 @@ routerAdd('POST', '/stripe', async (e) => {
         );
       }
       break;
+
+    case 'price.created':
+    case 'price.updated':
+      try {
+        const price = data.data.object;
+
+        // Only handle prices attached to products
+        if (!price.product) {
+          $app.logger().warn('Price has no associated product');
+          break;
+        }
+
+        // Find the product by stripe_product_id
+        let productRecord;
+        try {
+          productRecord = $app.findFirstRecordByData(
+            'products',
+            'stripe_product_id',
+            price.product
+          );
+        } catch (err) {
+          $app
+            .logger()
+            .warn('Product not found for price:', price.product);
+          break;
+        }
+
+        // Update the price (Stripe amounts are in smallest currency unit)
+        // For VND, amount is already in the correct format
+        if (
+          price.unit_amount !== null &&
+          price.unit_amount !== undefined
+        ) {
+          productRecord.set('price', price.unit_amount);
+          $app.save(productRecord);
+          $app
+            .logger()
+            .info('Product price updated:', productRecord.id);
+        }
+      } catch (err) {
+        $app.logger().error('Error processing price:', err);
+        throw new BadRequestError(
+          'Failed to process price: ' + err.message
+        );
+      }
+      break;
+
     case 'checkout.session.completed':
       try {
         const session = data.data.object;
