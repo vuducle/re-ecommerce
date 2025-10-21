@@ -375,6 +375,55 @@ routerAdd('POST', '/stripe', async (e) => {
 
             orderRecord.set('items', JSON.stringify(formattedItems));
             $app.logger().info('Formatted items:', formattedItems);
+
+            // Decrease stock for each product
+            for (const item of lineItemsResponse.json.data) {
+              try {
+                // Get the price ID from line item
+                const priceId = item.price?.id;
+                if (!priceId) {
+                  $app
+                    .logger()
+                    .warn(
+                      'No price ID found for line item:',
+                      item.id
+                    );
+                  continue;
+                }
+
+                // Find the product by stripe_product_id
+                const product = $app.findFirstRecordByFilter(
+                  'products',
+                  `stripe_price_id = "${priceId}"`
+                );
+
+                if (product) {
+                  const currentStock = product.get('stock') || 0;
+                  const newStock = Math.max(
+                    0,
+                    currentStock - item.quantity
+                  );
+
+                  product.set('stock', newStock);
+                  $app.save(product);
+
+                  $app
+                    .logger()
+                    .info(
+                      `Updated stock for product ${product.id}: ${currentStock} -> ${newStock}`
+                    );
+                } else {
+                  $app
+                    .logger()
+                    .warn('Product not found for price ID:', priceId);
+                }
+              } catch (stockErr) {
+                $app
+                  .logger()
+                  .error('Error updating stock:', stockErr);
+                // Continue processing other items even if one fails
+              }
+            }
           } else {
             $app
               .logger()

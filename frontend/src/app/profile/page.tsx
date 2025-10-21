@@ -182,9 +182,17 @@ export default function ProfilePage() {
                               </p>
                               <p className="text-gray-400">
                                 Date:{' '}
-                                {new Date(
-                                  order.orderDate
-                                ).toLocaleDateString('vi-VN')}
+                                {order.created
+                                  ? new Date(
+                                      order.created
+                                    ).toLocaleDateString('vi-VN', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })
+                                  : 'N/A'}
                               </p>
                             </div>
                           </div>
