@@ -118,17 +118,23 @@ routerAdd('POST', '/stripe', async (e) => {
 
         // Save the record first (without images)
         $app.save(record);
-        $app.logger().info('Product saved:', record.id);
+        $app
+          .logger()
+          .info('Product saved (without images):', record.id);
 
         // Auto-download and upload images from Stripe (after initial save)
         if (product.images && product.images.length > 0) {
           try {
-            const uploadedFiles = [];
+            const uploadedFileNames = [];
 
             for (let i = 0; i < product.images.length; i++) {
               const imageUrl = product.images[i];
 
               try {
+                $app
+                  .logger()
+                  .info('Downloading image from:', imageUrl);
+
                 // Download the image from Stripe
                 const imageResponse = await $http.send({
                   url: imageUrl,
@@ -139,16 +145,15 @@ routerAdd('POST', '/stripe', async (e) => {
                   imageResponse.statusCode === 200 &&
                   imageResponse.raw
                 ) {
-                  // Generate a filename from the URL or use a default
+                  // Determine file extension
+                  let extension = 'jpg';
                   const urlParts = imageUrl.split('/');
                   const originalFilename =
-                    urlParts[urlParts.length - 1] ||
-                    `product-${i}.jpg`;
+                    urlParts[urlParts.length - 1] || '';
 
-                  // Determine file extension from URL or content type
-                  let extension = 'jpg';
                   if (originalFilename.includes('.')) {
-                    extension = originalFilename.split('.').pop();
+                    const parts = originalFilename.split('.');
+                    extension = parts[parts.length - 1].toLowerCase();
                   } else if (imageResponse.headers['content-type']) {
                     const contentType =
                       imageResponse.headers['content-type'];
@@ -158,19 +163,44 @@ routerAdd('POST', '/stripe', async (e) => {
                       extension = 'webp';
                     else if (contentType.includes('gif'))
                       extension = 'gif';
+                    else if (
+                      contentType.includes('jpeg') ||
+                      contentType.includes('jpg')
+                    )
+                      extension = 'jpg';
                   }
 
                   // Create a unique filename
-                  const filename = `${product.id}-${i}.${extension}`;
+                  const filename = `stripe_${
+                    product.id
+                  }_${Date.now()}_${i}.${extension}`;
 
-                  // Create a file from the downloaded bytes
-                  const file = new File(
-                    [imageResponse.raw],
-                    filename
-                  );
-                  uploadedFiles.push(file);
+                  // Get storage path for the record
+                  const storagePath =
+                    $app.dataDir() +
+                    '/storage/' +
+                    collection.id +
+                    '/' +
+                    record.id;
 
-                  $app.logger().info('Downloaded image:', filename);
+                  // Ensure directory exists
+                  $os.mkdirAll(storagePath, 0o755);
+
+                  // Write file to storage
+                  const fullPath = storagePath + '/' + filename;
+                  $os.writeFile(fullPath, imageResponse.raw, 0o644);
+
+                  uploadedFileNames.push(filename);
+
+                  $app
+                    .logger()
+                    .info(
+                      'File saved:',
+                      filename,
+                      'Size:',
+                      imageResponse.raw.length,
+                      'bytes'
+                    );
                 }
               } catch (imgErr) {
                 $app
@@ -178,25 +208,46 @@ routerAdd('POST', '/stripe', async (e) => {
                   .error(
                     'Failed to download image:',
                     imageUrl,
-                    imgErr
+                    'Error:',
+                    imgErr.message
                   );
               }
             }
 
-            // Upload files to the already saved record
-            if (uploadedFiles.length > 0) {
-              record.set('images', uploadedFiles);
+            // Update record with image filenames
+            if (uploadedFileNames.length > 0) {
+              $app
+                .logger()
+                .info(
+                  'Updating record with',
+                  uploadedFileNames.length,
+                  'images'
+                );
+
+              // Get existing images (if any) and append new ones
+              const existingImages = record.get('images') || [];
+              const allImages = Array.isArray(existingImages)
+                ? [...existingImages, ...uploadedFileNames]
+                : uploadedFileNames;
+
+              record.set('images', allImages);
               $app.save(record);
 
               $app
                 .logger()
                 .info(
-                  'Images uploaded to product:',
-                  uploadedFiles.length
+                  'Images uploaded successfully to product:',
+                  record.id
                 );
+            } else {
+              $app
+                .logger()
+                .warn('No images were downloaded successfully');
             }
           } catch (err) {
-            $app.logger().error('Error processing images:', err);
+            $app
+              .logger()
+              .error('Error processing images:', err.message);
             // Don't fail the entire sync if images fail
           }
         }
@@ -326,11 +377,19 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
     const apiKey = process.env.STRIPE_API_KEY || '';
     const info = e.requestInfo();
     const token = info.headers['authorization'] || '';
+
+    $app.logger().info('Creating checkout session for user');
+
     let userRecord;
     try {
       userRecord = await $app.findAuthRecordByToken(token, 'auth');
+      $app.logger().info('User authenticated:', userRecord.id);
     } catch (error) {
-      return e.json(401, { message: 'User not authorized' });
+      $app.logger().error('Auth error:', error);
+      return e.json(401, {
+        message: 'User not authorized',
+        error: error.message,
+      });
     }
 
     const existingCustomer = $app.findRecordsByFilter(
@@ -383,15 +442,23 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
         $app.save(customerRecord);
       }
     } catch (error) {
+      $app.logger().error('Customer creation error:', error);
       return e.json(400, {
         message: 'Unable to create or use customer',
+        error: error.message,
       });
     }
 
     const items = info.body.items;
 
+    $app.logger().info('Items received:', items);
+
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return e.json(400, { message: 'No items in cart' });
+      $app.logger().error('No items in cart or invalid items format');
+      return e.json(400, {
+        message: 'No items in cart',
+        receivedBody: info.body,
+      });
     }
 
     const isProduction = process.env.NODE_ENV === 'production';
@@ -430,11 +497,19 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
       });
       return e.json(200, response.json);
     } catch (error) {
-      $app.logger().error('Error creating checkout:', error);
-      return e.json(400, { message: 'Failed to create checkout' });
+      $app.logger().error('Error creating checkout session:', error);
+      return e.json(400, {
+        message: 'Failed to create checkout',
+        error: error.message,
+        details: error.toString(),
+      });
     }
   } catch (error) {
-    return e.json(400, { message: error });
+    $app.logger().error('Outer catch - Unexpected error:', error);
+    return e.json(400, {
+      message: 'Unexpected error',
+      error: error.message || error.toString(),
+    });
   }
 });
 

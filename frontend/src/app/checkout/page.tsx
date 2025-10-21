@@ -49,26 +49,40 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const res = await pb.post('/create-checkout-session', { items }, {
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
+      console.log('Sending checkout request with items:', items);
+      console.log('Token:', token ? 'Present' : 'Missing');
+
+      const res = await pb.post(
+        '/create-checkout-session',
+        { items },
+        {
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Checkout response:', res.data);
 
       const { url } = res.data;
       if (url) {
-        router.push(url);
+        window.location.href = url; // Use direct navigation for Stripe
       } else {
         showNotification('Could not get checkout URL.', 'error');
       }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      console.error('Error response:', err.response?.data);
 
-    } catch (err) {
       const message =
-        err instanceof Error
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        (err instanceof Error
           ? err.message
-          : 'Something went wrong... Could not start checkout.';
+          : 'Something went wrong... Could not start checkout.');
+
       showNotification(message, 'error');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -97,49 +111,47 @@ export default function CheckoutPage() {
         Checkout
       </h1>
       <div>
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Order Summary
-          </h2>
-          <div className="space-y-2 mb-4">
-            {Object.values(cartItems).map((item) => (
-              <div
-                key={item.product.id}
-                className="flex justify-between text-gray-300"
-              >
-                <span>
-                  {item.product.name} x {item.quantity}
-                </span>
-                <span>
-                  {new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                  }).format(
-                    (item.product.price ?? 0) * item.quantity
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
-            <span className="text-xl font-bold text-white">
-              Total
-            </span>
-            <span className="text-xl font-bold text-yellow-400">
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-              }).format(totalAmount)}
-            </span>
-          </div>
-          <Button
-            onClick={handleStripeCheckout}
-            disabled={loading}
-            size="lg"
-            className="w-full mt-6 px-8 py-4 rounded-lg text-lg font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-green-700 to-green-900 border border-green-900/80 shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-green-600 hover:to-green-800 active:translate-y-0.5"
-          >
-            {loading ? 'Redirecting to payment...' : 'Proceed to Payment'}
-          </Button>
+        <h2 className="text-2xl font-bold text-white mb-4">
+          Order Summary
+        </h2>
+        <div className="space-y-2 mb-4">
+          {Object.values(cartItems).map((item) => (
+            <div
+              key={item.product.id}
+              className="flex justify-between text-gray-300"
+            >
+              <span>
+                {item.product.name} x {item.quantity}
+              </span>
+              <span>
+                {new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                }).format((item.product.price ?? 0) * item.quantity)}
+              </span>
+            </div>
+          ))}
         </div>
+        <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
+          <span className="text-xl font-bold text-white">Total</span>
+          <span className="text-xl font-bold text-yellow-400">
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(totalAmount)}
+          </span>
+        </div>
+        <Button
+          onClick={handleStripeCheckout}
+          disabled={loading}
+          size="lg"
+          className="w-full mt-6 px-8 py-4 rounded-lg text-lg font-semibold uppercase tracking-wider text-white bg-gradient-to-b from-green-700 to-green-900 border border-green-900/80 shadow-[0_6px_0_rgba(0,0,0,0.6)] hover:from-green-600 hover:to-green-800 active:translate-y-0.5"
+        >
+          {loading
+            ? 'Redirecting to payment...'
+            : 'Proceed to Payment'}
+        </Button>
+      </div>
     </div>
   );
 }
