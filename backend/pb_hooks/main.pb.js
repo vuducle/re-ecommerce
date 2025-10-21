@@ -324,14 +324,31 @@ routerAdd('POST', '/stripe', async (e) => {
 
           orderRecord.set('user', userId);
           orderRecord.set('status', 'pending');
-          orderRecord.set('totalAmount', session.amount_total / 100);
-          orderRecord.set(
-            'shippingAddress',
+          // VND doesn't use cents, so don't divide by 100
+          orderRecord.set('totalAmount', session.amount_total);
+
+          // Format shipping address properly
+          if (
+            session.customer_details &&
             session.customer_details.address
-          );
+          ) {
+            const addr = session.customer_details.address;
+            const formattedAddress = {
+              line1: addr.line1 || '',
+              line2: addr.line2 || '',
+              city: addr.city || '',
+              state: addr.state || '',
+              postal_code: addr.postal_code || '',
+              country: addr.country || '',
+            };
+            orderRecord.set(
+              'shippingAddress',
+              JSON.stringify(formattedAddress)
+            );
+          }
 
           // To get the line items, we need to make an API call to Stripe
-          const apiKey = process.env.STRIPE_API_KEY || ''; // IMPORTANT: Replace with your Stripe API key
+          const apiKey = process.env.STRIPE_API_KEY || '';
           const lineItemsResponse = await $http.send({
             url: `https://api.stripe.com/v1/checkout/sessions/${session.id}/line_items`,
             method: 'GET',
@@ -344,7 +361,20 @@ routerAdd('POST', '/stripe', async (e) => {
             lineItemsResponse.statusCode === 200 &&
             lineItemsResponse.json.data
           ) {
-            orderRecord.set('items', lineItemsResponse.json.data);
+            // Format line items to match our OrderItem interface
+            const formattedItems = lineItemsResponse.json.data.map(
+              (item) => ({
+                id: item.id,
+                name: item.description || 'Product',
+                quantity: item.quantity,
+                // VND doesn't use cents
+                price: item.amount_total / item.quantity,
+                currency: item.currency,
+              })
+            );
+
+            orderRecord.set('items', JSON.stringify(formattedItems));
+            $app.logger().info('Formatted items:', formattedItems);
           } else {
             $app
               .logger()
@@ -355,6 +385,9 @@ routerAdd('POST', '/stripe', async (e) => {
           }
 
           $app.save(orderRecord);
+          $app
+            .logger()
+            .info('Order created successfully:', orderRecord.id);
         }
       } catch (err) {
         $app

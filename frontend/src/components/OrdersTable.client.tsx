@@ -36,8 +36,10 @@ export default function OrdersTable({
   const { user, token } = useSelector(
     (state: RootState) => state.auth
   );
-  const [selectedOrder, setSelectedOrder] = useState<MappedOrder | null>(null);
-  const [orderToDelete, setOrderToDelete] = useState<MappedOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] =
+    useState<MappedOrder | null>(null);
+  const [orderToDelete, setOrderToDelete] =
+    useState<MappedOrder | null>(null);
 
   const statusColors: { [key: string]: string } = {
     pending: 'bg-yellow-900 text-yellow-300',
@@ -47,77 +49,83 @@ export default function OrdersTable({
     finish: 'bg-green-900 text-green-300',
   };
 
-    const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
+    const normalizedStatus = status.trim().toLowerCase();
 
-      const normalizedStatus = status.trim().toLowerCase();
+    return (
+      statusColors[normalizedStatus] || 'bg-gray-900 text-gray-300'
+    );
+  };
+  const handleUpdateStatus = async (
+    orderId: string,
+    status: string
+  ) => {
+    if (!token || !user) return;
 
-      return statusColors[normalizedStatus] || 'bg-gray-900 text-gray-300';
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${token}`,
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ id: orderId, status }),
+      });
 
-    };
-    const handleUpdateStatus = async (orderId: string, status: string) => {
-      if (!token || !user) return;
-  
-      try {
-        const res = await fetch('/api/admin/orders', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: `Bearer ${token}`,
-            'x-user-id': user.id,
-          },
-          body: JSON.stringify({ id: orderId, status }),
-        });
-  
-        if (res.ok) {
-          showNotification('Order status updated successfully', 'success');
-          onOrderUpdated?.();
-        } else {
-          const data = await res.json();
-          showNotification(
-            data.error || 'Failed to update order status',
-            'error'
-          );
-        }
-      } catch {
+      if (res.ok) {
         showNotification(
-          'An error occurred while updating the order status',
+          'Order status updated successfully',
+          'success'
+        );
+        onOrderUpdated?.();
+      } else {
+        const data = await res.json();
+        showNotification(
+          data.error || 'Failed to update order status',
           'error'
         );
       }
-    };
-  
-    const handleDeleteOrder = async () => {
-      if (!orderToDelete || !token || !user) return;
-  
-      try {
-        const res = await fetch('/api/admin/orders', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: `Bearer ${token}`,
-            'x-user-id': user.id,
-          },
-          body: JSON.stringify({ id: orderToDelete.id }),
-        });
-  
-        if (res.ok) {
-          showNotification('Order deleted successfully', 'success');
-          onOrderUpdated?.();
-          setOrderToDelete(null);
-        } else {
-          const data = await res.json();
-          showNotification(
-            data.error || 'Failed to delete order',
-            'error'
-          );
-        }
-      } catch {
+    } catch {
+      showNotification(
+        'An error occurred while updating the order status',
+        'error'
+      );
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete || !token || !user) return;
+
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: `Bearer ${token}`,
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ id: orderToDelete.id }),
+      });
+
+      if (res.ok) {
+        showNotification('Order deleted successfully', 'success');
+        onOrderUpdated?.();
+        setOrderToDelete(null);
+      } else {
+        const data = await res.json();
         showNotification(
-          'An error occurred while deleting the order',
+          data.error || 'Failed to delete order',
           'error'
         );
       }
-    };
+    } catch {
+      showNotification(
+        'An error occurred while deleting the order',
+        'error'
+      );
+    }
+  };
 
   const mappedOrders: MappedOrder[] = (orders ?? []).map((o) => {
     const id = (o.id ?? o._id ?? o.recordId ?? '') as string;
@@ -142,9 +150,31 @@ export default function OrdersTable({
       userName = (o.user as string) || '';
     }
     const total = (o.totalAmount as number) || 0;
-    const items = (o.items as any[]) || [];
+
+    // Parse items from JSON string if needed
+    let items = (o.items as any[]) || [];
+    if (typeof o.items === 'string') {
+      try {
+        items = JSON.parse(o.items);
+      } catch (e) {
+        console.error('Failed to parse items:', e);
+        items = [];
+      }
+    }
+
     const status = (o.status as string) || 'pending';
-    const shippingAddress = (o.shippingAddress as any) || {};
+
+    // Parse shipping address from JSON string if needed
+    let shippingAddress = (o.shippingAddress as any) || {};
+    if (typeof o.shippingAddress === 'string') {
+      try {
+        shippingAddress = JSON.parse(o.shippingAddress);
+      } catch (e) {
+        console.error('Failed to parse shipping address:', e);
+        shippingAddress = {};
+      }
+    }
+
     const createdRaw =
       (o.created as string) ||
       (o.createdAt as string) ||
@@ -338,9 +368,11 @@ export default function OrdersTable({
                   </button>
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400">
-                  {o.shippingAddress
-                    ? `${o.shippingAddress.street}, ${o.shippingAddress.city}, ${o.shippingAddress.zip}`
-                    : ''}
+                  {o.shippingAddress && o.shippingAddress.line1
+                    ? `${o.shippingAddress.line1}, ${
+                        o.shippingAddress.city
+                      }, ${o.shippingAddress.postal_code || ''}`
+                    : 'N/A'}
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400 font-mono">
                   {o.created}
@@ -349,7 +381,9 @@ export default function OrdersTable({
                   <div className="flex gap-2">
                     <select
                       value={o.status}
-                      onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
+                      onChange={(e) =>
+                        handleUpdateStatus(o.id, e.target.value)
+                      }
                       className="bg-[#0b0b0b] text-sm text-gray-200 border border-gray-800 rounded px-2 py-1"
                     >
                       <option value="pending">Pending</option>

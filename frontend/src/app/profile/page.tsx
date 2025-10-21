@@ -30,14 +30,15 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
-  images: string[];
-  collectionId: string;
+  currency?: string;
 }
 
 interface ShippingAddress {
-  street: string;
+  line1: string;
+  line2?: string;
   city: string;
-  zip: string;
+  state?: string;
+  postal_code: string;
   country: string;
 }
 
@@ -100,7 +101,9 @@ export default function ProfilePage() {
     }
     try {
       const parsed = JSON.parse(address);
-      return typeof parsed === 'object' && parsed !== null ? parsed : null;
+      return typeof parsed === 'object' && parsed !== null
+        ? parsed
+        : null;
     } catch (e) {
       return null;
     }
@@ -205,10 +208,13 @@ export default function ProfilePage() {
                                     </p>
                                     <p className="text-gray-400">
                                       Price:{' '}
-                                      {new Intl.NumberFormat('vi-VN', {
-                                        style: 'currency',
-                                        currency: 'VND',
-                                      }).format(item.price)}
+                                      {new Intl.NumberFormat(
+                                        'vi-VN',
+                                        {
+                                          style: 'currency',
+                                          currency: 'VND',
+                                        }
+                                      ).format(item.price)}
                                     </p>
                                   </div>
                                 </li>
@@ -221,10 +227,15 @@ export default function ProfilePage() {
                               <h4 className="font-bold text-red-500 mb-2">
                                 Shipping Address
                               </h4>
-                              <p>{shippingAddress.street}</p>
+                              <p>{shippingAddress.line1}</p>
+                              {shippingAddress.line2 && (
+                                <p>{shippingAddress.line2}</p>
+                              )}
                               <p>
-                                {shippingAddress.city},{' '}
-                                {shippingAddress.zip}
+                                {shippingAddress.city}
+                                {shippingAddress.state &&
+                                  `, ${shippingAddress.state}`}{' '}
+                                {shippingAddress.postal_code}
                               </p>
                               <p>{shippingAddress.country}</p>
                             </div>
