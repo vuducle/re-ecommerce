@@ -5,33 +5,11 @@ import {
   getCategoryBySlug,
   getProductsByCategory,
   Product,
-  getCategories,
 } from '@/lib/pocketbase';
 
-// Allow dynamic params for categories not in generateStaticParams
-export const dynamicParams = true;
-
-// Revalidate every 60 seconds to keep categories fresh
-export const revalidate = 60;
-
-export async function generateStaticParams() {
-  try {
-    const { items } = await getCategories();
-    console.log(
-      'Categories fetched for generateStaticParams:',
-      items
-    );
-    return items.map((category) => ({
-      slug: category.slug,
-    }));
-  } catch (error) {
-    console.error(
-      'Error fetching categories for static params:',
-      error
-    );
-    return [];
-  }
-}
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata({
   params,
@@ -75,7 +53,33 @@ export default async function CategoryPage({
   searchParams,
 }: Props) {
   const { slug } = params;
-  const category = await getCategoryBySlug(slug);
+
+  // Add better error logging
+  console.log('Fetching category with slug:', slug);
+  console.log(
+    'PocketBase URL:',
+    process.env.NEXT_PUBLIC_POCKETBASE_URL
+  );
+
+  let category;
+  try {
+    category = await getCategoryBySlug(slug);
+    console.log('Category fetched successfully:', category);
+  } catch (error) {
+    console.error('Error fetching category:', error);
+    return (
+      <main className="max-w-5xl mx-auto py-20 px-4">
+        <h1 className="text-3xl font-bold text-red-500">
+          Error Loading Category
+        </h1>
+        <p className="mt-4">Failed to fetch category: {slug}</p>
+        <pre className="mt-4 p-4 bg-black text-white rounded overflow-auto text-xs">
+          {JSON.stringify(error, null, 2)}
+        </pre>
+      </main>
+    );
+  }
+
   const sort = searchParams.sort as string;
   const page = searchParams.page
     ? parseInt(searchParams.page as string)
@@ -85,11 +89,16 @@ export default async function CategoryPage({
     : 5;
 
   if (!category) {
+    console.log('Category not found for slug:', slug);
     return (
       <main className="max-w-5xl mx-auto py-20 px-4">
         <h1 className="text-3xl font-bold">Category not found</h1>
         <p className="mt-4">
-          No category with slug {slug} was found.
+          No category with slug "{slug}" was found.
+        </p>
+        <p className="mt-2 text-sm text-gray-500">
+          PocketBase URL:{' '}
+          {process.env.NEXT_PUBLIC_POCKETBASE_URL || 'NOT SET'}
         </p>
       </main>
     );
