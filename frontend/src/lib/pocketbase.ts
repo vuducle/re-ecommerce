@@ -43,6 +43,7 @@ export async function getCategories(opts?: {
     const res = await pb.get('/api/collections/categories/records', {
       params,
     });
+    console.log('Raw PocketBase categories response:', res.data); // Add this line
     // PocketBase returns { items: [], totalItems, page, perPage }
     return res.data as PBList<Category>;
   } catch (error) {
