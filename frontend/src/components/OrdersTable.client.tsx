@@ -368,11 +368,25 @@ export default function OrdersTable({
                   </button>
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400">
-                  {o.shippingAddress && o.shippingAddress.line1
-                    ? `${o.shippingAddress.line1}, ${
-                        o.shippingAddress.city
-                      }, ${o.shippingAddress.postal_code || ''}`
-                    : 'N/A'}
+                  {o.shippingAddress && o.shippingAddress.line1 ? (
+                    <div className="max-w-xs">
+                      <div>{o.shippingAddress.line1}</div>
+                      {o.shippingAddress.line2 && (
+                        <div>{o.shippingAddress.line2}</div>
+                      )}
+                      <div>
+                        {o.shippingAddress.city}
+                        {o.shippingAddress.state &&
+                          `, ${o.shippingAddress.state}`}
+                      </div>
+                      <div>
+                        {o.shippingAddress.postal_code}{' '}
+                        {o.shippingAddress.country}
+                      </div>
+                    </div>
+                  ) : (
+                    'N/A'
+                  )}
                 </td>
                 <td className="px-3 py-3 align-middle text-xs text-gray-400 font-mono">
                   {o.created}

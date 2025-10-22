@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import type { AppDispatch } from '../store';
 import { Button } from './ui/button';
 import { useNotification } from '../context/NotificationContext';
+import Image from 'next/image';
 
 export default function LoginForm() {
   const dispatch = useDispatch<AppDispatch>();
@@ -42,31 +43,6 @@ export default function LoginForm() {
           router.push('/');
         }
         showNotification('Signed in successfully', 'success');
-      } else {
-        // fallback: mock login for dev if no API
-        if (
-          email === 'admin@example.com' &&
-          password === 'password'
-        ) {
-          dispatch(
-            setAuth({
-              user: { id: '1', email, name: 'Admin', isAdmin: true },
-              token: 'dev-token',
-            })
-          );
-        } else if (
-          email === 'user@example.com' &&
-          password === 'password'
-        ) {
-          dispatch(
-            setAuth({
-              user: { id: '2', email, name: 'User' },
-              token: 'dev-token',
-            })
-          );
-        } else {
-          throw new Error('Invalid credentials');
-        }
       }
     } catch (err: unknown) {
       const msg =
@@ -85,7 +61,13 @@ export default function LoginForm() {
       <div className="bg-gradient-to-b from-[#070707] to-[#0f0f0f] border border-white/6 rounded-2xl p-6 shadow-2xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full bg-[#ffdede]/10 flex items-center justify-center text-[#ffdede] font-orbitron text-lg">
-            RE
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={30}
+              height={30}
+              className="object-cover"
+            />
           </div>
           <div>
             <h2 className="text-lg font-orbitron text-white">
@@ -107,7 +89,7 @@ export default function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
-              placeholder="you@domain.com"
+              placeholder="chris-redfield-builder@re-ecommerce.com"
               required
             />
           </div>
@@ -121,7 +103,7 @@ export default function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              placeholder="••••••••"
+              placeholder="Your strong password"
               required
             />
           </div>
@@ -150,14 +132,6 @@ export default function LoginForm() {
           >
             Create one
           </a>
-        </div>
-
-        <div className="mt-4 text-xs text-gray-500">
-          <div className="italic">Dev quick logins:</div>
-          <div className="mt-1">
-            admin@example.com / password (admin)
-          </div>
-          <div>user@example.com / password</div>
         </div>
       </div>
     </div>

@@ -9,13 +9,14 @@ import { clearAuth } from '../store/slices/authSlice';
 import { logout as pbLogout, buildFileUrl } from '../lib/pocketbase';
 import { ChevronDown, ShoppingCart, Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 import { usePathname } from 'next/navigation';
 import type { Category } from '../lib/pocketbase';
 import { useNotification } from '../context/NotificationContext';
 import { useMobileMenu } from '@/context/MobileMenuContext';
+import SearchBar from './SearchBar.client';
 
 type Props = {
   categories: Category[];
@@ -29,7 +30,7 @@ const DEFAULT_NAV = [
 ];
 
 export default function HeaderClient({ categories }: Props) {
-  const { isOpen, closeMenu, toggleMenu } = useMobileMenu();
+  const { isOpen, closeMenu } = useMobileMenu();
   const pathname = usePathname();
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -112,7 +113,7 @@ export default function HeaderClient({ categories }: Props) {
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen]);
+  }, [isOpen, closeMenu]);
 
   return (
     <>
@@ -120,24 +121,316 @@ export default function HeaderClient({ categories }: Props) {
         {/* thin accent stripe like the RE UI */}
         <div className="h-1 w-full bg-red-900" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10  bg-[#070607] flex items-center justify-center overflow-hidden shadow-[0_6px_18px_rgba(220,38,38,0.12)]">
-                <Image
-                  src="/logo.png"
-                  alt="RE"
-                  width={32}
-                  height={32}
-                />
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            <div className="flex h-14 items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-[#070607] flex items-center justify-center overflow-hidden shadow-[0_6px_18px_rgba(220,38,38,0.12)]">
+                  <Image
+                    src="/logo.png"
+                    alt="RE"
+                    width={24}
+                    height={24}
+                  />
+                </div>
+                <Link
+                  href="/"
+                  className="font-orbitron text-sm tracking-widest text-[#ffdede] uppercase"
+                >
+                  RE
+                </Link>
               </div>
-              <Link
-                href="/"
-                className="font-orbitron text-lg tracking-widest text-[#ffdede] uppercase"
-              >
-                RESIDENT E-COMMERCE
-              </Link>
+
+              <div className="flex items-center gap-1">
+                <Link
+                  href="/inventory"
+                  className="relative p-2 rounded-md text-gray-200 hover:bg-white/3"
+                >
+                  <ShoppingCart size={18} />
+                  {itemCount > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                      {itemCount}
+                    </span>
+                  )}
+                </Link>
+
+                <Link
+                  href="/wishlist"
+                  className="relative p-2 rounded-md text-gray-200 hover:bg-white/3"
+                >
+                  <Heart size={18} />
+                  {wishlistItems.length > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </Link>
+
+                {!auth.authenticated ? (
+                  <>
+                    <Link href="/login">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="!bg-gradient-to-b from-rose-700 to-rose-600 !border-rose-800 text-white text-xs px-3"
+                      >
+                        Login
+                      </Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-300 text-xs px-3"
+                      >
+                        Register
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/3"
+                      onClick={() => setUserMenuOpen((v) => !v)}
+                      aria-expanded={userMenuOpen}
+                      aria-haspopup="menu"
+                    >
+                      <div className="w-7 h-7 rounded-full overflow-hidden bg-[#0b0b0b]">
+                        {auth.user?.profileImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={buildFileUrl(
+                              auth.user.profileImage,
+                              'users',
+                              auth.user.id
+                            )}
+                            alt={auth.user?.name ?? 'avatar'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            RE
+                          </div>
+                        )}
+                      </div>
+                      <ChevronDown
+                        size={12}
+                        className="text-gray-300"
+                      />
+                    </button>
+
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
+                        <div className="py-2">
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              router.push('/profile');
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                          >
+                            Profile
+                          </button>
+
+                          {auth.user?.isAdmin && (
+                            <button
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                router.push('/dashboard');
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                            >
+                              Dashboard
+                            </button>
+                          )}
+
+                          <button
+                            onClick={async () => {
+                              setUserMenuOpen(false);
+                              try {
+                                await pbLogout();
+                                showNotification(
+                                  'Logged out successfully',
+                                  'success'
+                                );
+                              } finally {
+                                dispatch(clearAuth());
+                                router.push('/');
+                              }
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                          >
+                            Logout
+                          </button>
+
+                          <div className="border-t border-rose-900/10 mt-2" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-            <nav className="hidden md:flex justify-center items-baseline gap-6 flex-grow">
+
+            {/* Mobile Search Bar - Second Row */}
+            <div className="pb-2">
+              <SearchBar />
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden md:flex flex-col">
+            <div className="flex h-16 items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10  bg-[#070607] flex items-center justify-center overflow-hidden shadow-[0_6px_18px_rgba(220,38,38,0.12)]">
+                  <Image
+                    src="/logo.png"
+                    alt="RE"
+                    width={32}
+                    height={32}
+                  />
+                </div>
+                <Link
+                  href="/"
+                  className="font-orbitron text-lg tracking-widest text-[#ffdede] uppercase"
+                >
+                  RESIDENT E-COMMERCE
+                </Link>
+              </div>
+              <div className="flex-grow flex justify-center">
+                <SearchBar />
+              </div>
+              <div className="flex items-center">
+                <Link
+                  href="/inventory"
+                  className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2"
+                >
+                  <ShoppingCart size={20} />
+                  {itemCount > 0 && (
+                    <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                      {itemCount}
+                    </span>
+                  )}
+                </Link>
+
+                <Link
+                  href="/wishlist"
+                  className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2"
+                >
+                  <Heart size={20} />
+                  {wishlistItems.length > 0 && (
+                    <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </Link>
+
+                {!auth.authenticated ? (
+                  <>
+                    <Link href="/login">
+                      <Button
+                        variant="destructive"
+                        className="mr-2 !bg-gradient-to-b from-rose-700 to-rose-600 !border-rose-800 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_12px_30px_rgba(220,38,38,0.12)]"
+                      >
+                        Login
+                      </Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button className="!bg-zinc-800 text-zinc-100 border border-zinc-700">
+                        Register
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 px-3 py-1 rounded hover:bg-white/3"
+                      onClick={() => setUserMenuOpen((v) => !v)}
+                      aria-expanded={userMenuOpen}
+                      aria-haspopup="menu"
+                    >
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0b0b0b]">
+                        {auth.user?.profileImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={buildFileUrl(
+                              auth.user.profileImage,
+                              'users',
+                              auth.user.id
+                            )}
+                            alt={auth.user?.name ?? 'avatar'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            RE
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm text-gray-400">
+                        {auth.user?.name}
+                      </span>
+                      <ChevronDown
+                        size={14}
+                        className="text-gray-300"
+                      />
+                    </button>
+
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
+                        <div className="py-2">
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              router.push('/profile');
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                          >
+                            Profile
+                          </button>
+
+                          {auth.user?.isAdmin && (
+                            <button
+                              onClick={() => {
+                                setUserMenuOpen(false);
+                                router.push('/dashboard');
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                            >
+                              Dashboard
+                            </button>
+                          )}
+
+                          <button
+                            onClick={async () => {
+                              setUserMenuOpen(false);
+                              try {
+                                await pbLogout();
+                                showNotification(
+                                  'Logged out successfully',
+                                  'success'
+                                );
+                              } finally {
+                                dispatch(clearAuth());
+                                router.push('/');
+                              }
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
+                          >
+                            Logout
+                          </button>
+
+                          <div className="border-t border-rose-900/10 mt-2" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+            <nav className="hidden md:flex justify-center items-baseline gap-6">
               {DEFAULT_NAV.map((item) => {
                 const active = pathname === item.href;
                 return (
@@ -208,135 +501,6 @@ export default function HeaderClient({ categories }: Props) {
                 </div>
               </div>
             </nav>
-
-            <div className="flex items-center">
-              <Link
-                href="/inventory"
-                className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2"
-              >
-                <ShoppingCart size={20} />
-                {itemCount > 0 && (
-                  <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
-                    {itemCount}
-                  </span>
-                )}
-              </Link>
-
-              <Link
-                href="/wishlist"
-                className="relative p-2 rounded-md text-gray-200 hover:bg-white/3 mr-2"
-              >
-                <Heart size={20} />
-                {wishlistItems.length > 0 && (
-                  <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
-                    {wishlistItems.length}
-                  </span>
-                )}
-              </Link>
-
-              {!auth.authenticated ? (
-                <>
-                  <Link href="/login">
-                    <Button
-                      variant="destructive"
-                      className="mr-2 !bg-gradient-to-b from-rose-700 to-rose-600 !border-rose-800 text-white shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_12px_30px_rgba(220,38,38,0.12)]"
-                    >
-                      Login
-                    </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button className="!bg-zinc-800 text-zinc-100 border border-zinc-700">
-                      Register
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <div className="relative" ref={userMenuRef}>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 px-3 py-1 rounded hover:bg-white/3"
-                    onClick={() => setUserMenuOpen((v) => !v)}
-                    aria-expanded={userMenuOpen}
-                    aria-haspopup="menu"
-                  >
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-[#0b0b0b]">
-                      {auth.user?.profileImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={buildFileUrl(
-                            auth.user.profileImage,
-                            'users',
-                            auth.user.id
-                          )}
-                          alt={auth.user?.name ?? 'avatar'}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          RE
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-400">
-                      {auth.user?.name}
-                    </span>
-                    <ChevronDown
-                      size={14}
-                      className="text-gray-300"
-                    />
-                  </button>
-
-                  {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-[#070607] to-[#0b0b0b] ring-1 ring-rose-800/20 rounded shadow-lg z-50 border border-rose-900/10">
-                      <div className="py-2">
-                        <button
-                          onClick={() => {
-                            setUserMenuOpen(false);
-                            router.push('/profile');
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
-                        >
-                          Profile
-                        </button>
-
-                        {auth.user?.isAdmin && (
-                          <button
-                            onClick={() => {
-                              setUserMenuOpen(false);
-                              router.push('/dashboard');
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
-                          >
-                            Dashboard
-                          </button>
-                        )}
-
-                        <button
-                          onClick={async () => {
-                            setUserMenuOpen(false);
-                            try {
-                              await pbLogout();
-                              showNotification(
-                                'Logged out successfully',
-                                'success'
-                              );
-                            } finally {
-                              dispatch(clearAuth());
-                              router.push('/');
-                            }
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-white/3"
-                        >
-                          Logout
-                        </button>
-
-                        <div className="border-t border-rose-900/10 mt-2" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -519,7 +683,7 @@ export default function HeaderClient({ categories }: Props) {
       </header>
 
       {/* spacer to prevent page content from being hidden under the fixed header */}
-      <div className="h-[68px]" aria-hidden="true" />
+      <div className="h-[100px] md:h-[112px]" aria-hidden="true" />
     </>
   );
 }

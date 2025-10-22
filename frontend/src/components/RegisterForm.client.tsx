@@ -9,6 +9,7 @@ import { setAuth } from '../store/slices/authSlice';
 import { Button } from './ui/button';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import { useNotification } from '../context/NotificationContext';
+import Image from 'next/image';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -162,11 +163,17 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md mx-auto scanlines">
       <div className="bg-gradient-to-b from-[#070707] to-[#0f0f0f] border border-white/6 rounded-2xl p-6 shadow-2xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full bg-[#ffdede]/10 flex items-center justify-center text-[#ffdede] font-orbitron text-lg">
-            RE
+            <Image
+              src="/logo.png"
+              alt="RE"
+              width={32}
+              height={32}
+              className="object-cover"
+            />
           </div>
           <div>
             <h2 className="text-lg font-orbitron text-white">
@@ -195,7 +202,7 @@ export default function RegisterForm() {
                 setEmailError(null);
               }}
               type="email"
-              placeholder="you@domain.com"
+              placeholder="sana-minatozaki@twice-once.jp"
               required
             />
             {emailError && (
@@ -214,7 +221,7 @@ export default function RegisterForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               type="text"
-              placeholder="Your name"
+              placeholder="Momo Hirai"
             />
           </div>
 

@@ -29,7 +29,7 @@ async function getCategories(): Promise<Category[]> {
     { cache: 'no-store' }
   );
   const data = await res.json();
-  console.log("Categories data:", data.items); // Add this line for debugging
+  console.log('Categories data:', data.items); // Add this line for debugging
   return data.items;
 }
 
@@ -52,13 +52,13 @@ export default async function CategoriesPage() {
               what you need to survive the nightmare.
             </p>
           </div>
-          <div className="w-full md:w-1/2">
+          <div className="w-full md:w-1/2 scanlines">
             <Image
               src="/img/mr-x.jpg"
               alt="Categories Header"
               width={500}
               height={300}
-              className="rounded-lg object-cover"
+              className="rounded-lg object-cover scanlines"
             />
           </div>
         </div>
@@ -78,7 +78,7 @@ export default async function CategoriesPage() {
                   <CardHeader className="p-0">
                     <div className="flex-shrink-0">
                       {imageUrl ? (
-                        <div className="rounded-lg overflow-hidden w-full h-48 relative">
+                        <div className="rounded-lg overflow-hidden w-full h-48 relative scanlines">
                           <Image
                             src={imageUrl}
                             alt={category.name || 'Category Image'}
