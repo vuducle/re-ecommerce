@@ -8,12 +8,29 @@ import {
   getCategories,
 } from '@/lib/pocketbase';
 
+// Allow dynamic params for categories not in generateStaticParams
+export const dynamicParams = true;
+
+// Revalidate every 60 seconds to keep categories fresh
+export const revalidate = 60;
+
 export async function generateStaticParams() {
-  const { items } = await getCategories();
-  console.log('Categories fetched for generateStaticParams:', items); // Add this line
-  return items.map((category) => ({
-    slug: category.slug,
-  }));
+  try {
+    const { items } = await getCategories();
+    console.log(
+      'Categories fetched for generateStaticParams:',
+      items
+    );
+    return items.map((category) => ({
+      slug: category.slug,
+    }));
+  } catch (error) {
+    console.error(
+      'Error fetching categories for static params:',
+      error
+    );
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -53,12 +70,19 @@ type Props = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default async function CategoryPage({ params, searchParams }: Props) {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = params;
   const category = await getCategoryBySlug(slug);
   const sort = searchParams.sort as string;
-  const page = searchParams.page ? parseInt(searchParams.page as string) : 1;
-  const perPage = searchParams.perPage ? parseInt(searchParams.perPage as string) : 5;
+  const page = searchParams.page
+    ? parseInt(searchParams.page as string)
+    : 1;
+  const perPage = searchParams.perPage
+    ? parseInt(searchParams.perPage as string)
+    : 5;
 
   if (!category) {
     return (
@@ -195,7 +219,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               <ul className="grid grid-cols-1 sm:grid-cols-1 gap-4 w-full">
                 {products.items.map((p: Product) => {
                   const image =
-                    (p.images && p.images.length > 0 && p.images[0]) ||
+                    (p.images &&
+                      p.images.length > 0 &&
+                      p.images[0]) ||
                     null;
                   const imageUrl = image
                     ? image.startsWith('http')
@@ -218,7 +244,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                                 <Image
                                   src={imageUrl}
                                   alt={String(
-                                    p.name ?? p.title ?? 'Product image'
+                                    p.name ??
+                                      p.title ??
+                                      'Product image'
                                   )}
                                   fill
                                   className="object-cover"
