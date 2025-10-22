@@ -36,14 +36,20 @@ export type PBList<T> = {
 export async function getCategories(opts?: {
   perPage?: number;
 }): Promise<PBList<Category>> {
-  const params: Record<string, unknown> = {
-    perPage: opts?.perPage ?? 50,
-  };
-  const res = await pb.get('/api/collections/categories/records', {
-    params,
-  });
-  // PocketBase returns { items: [], totalItems, page, perPage }
-  return res.data as PBList<Category>;
+  try {
+    const params: Record<string, unknown> = {
+      perPage: opts?.perPage ?? 50,
+    };
+    const res = await pb.get('/api/collections/categories/records', {
+      params,
+    });
+    // PocketBase returns { items: [], totalItems, page, perPage }
+    return res.data as PBList<Category>;
+  } catch (error) {
+    console.error('Error fetching categories in getCategories:', error);
+    // Return an empty list or re-throw the error depending on desired behavior
+    return { items: [], totalItems: 0, page: 1, perPage: opts?.perPage ?? 50 };
+  }
 }
 
 /** Fetch a single category by its slug.
