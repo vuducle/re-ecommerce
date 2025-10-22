@@ -10,6 +10,7 @@ import {
 
 export async function generateStaticParams() {
   const { items } = await getCategories();
+  console.log('Categories fetched for generateStaticParams:', items); // Add this line
   return items.map((category) => ({
     slug: category.slug,
   }));
