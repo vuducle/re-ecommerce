@@ -28,6 +28,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import AddToCartButton from '@/components/AddToCartButton.client';
 
+import FilterDropdown from '@/components/FilterDropdown.client';
+
 const PB_URL =
   process.env.NEXT_PUBLIC_POCKETBASE_URL ?? 'http://127.0.0.1:8090';
 
@@ -46,11 +48,13 @@ function wordToUpperCase(str: string) {
 
 type Props = {
   params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default async function CategoryPage({ params }: Props) {
+export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = params;
   const category = await getCategoryBySlug(slug);
+  const sort = searchParams.sort as string;
 
   if (!category) {
     return (
@@ -80,6 +84,7 @@ export default async function CategoryPage({ params }: Props) {
 
   const products = await getProductsByCategory(category.id, {
     perPage: 100,
+    sort: sort,
   });
   return (
     <main className="w-full py-12">
@@ -162,7 +167,10 @@ export default async function CategoryPage({ params }: Props) {
 
       <section id="products" className="w-full">
         <div className="max-w-5xl mx-auto px-4 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Products</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Products</h2>
+            <FilterDropdown />
+          </div>
           {products.items.length === 0 ? (
             <>
               <div className="flex justify-center items-center flex-col gap-4 text-zinc-400 bg-[#0a0a0a] border border-[#2a0808] shadow-[0_0_40px_rgba(200,16,30,0.15)] rounded-lg p-10">
