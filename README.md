@@ -25,7 +25,9 @@ This repository contains:
 
 ### 🛒 E-Commerce Functionality
 
-- **Product Catalog**: Browse products with categories, search, and filtering
+- **Product Catalog**: Browse products with categories
+- **Search Bar**: Easily find products by name or description
+- **Filtering**: Refine product listings by various criteria using a filter dropdown
 - **Shopping Cart**: Add to cart, update quantities, and manage items with Redux state management
 - **Wishlist**: Save favorite items for later
 - **Checkout**: Secure payment processing via Stripe with automatic order creation
@@ -66,6 +68,7 @@ This repository contains:
 - **Toast Notifications**: User-friendly feedback for all actions
 - **Loading States**: Smooth loading indicators for better UX
 - **Empty States**: Helpful messages when no data is available
+- **Legal Pages**: Dedicated pages for About Us, Privacy Policy, and Terms of Service
 
 ### 🔧 Technical Features
 
