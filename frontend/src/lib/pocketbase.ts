@@ -98,7 +98,7 @@ export type Product = {
  */
 export async function getProductsByCategory(
   categoryId: string,
-  opts?: { perPage?: number; sort?: string }
+  opts?: { perPage?: number; sort?: string; page?: number }
 ) {
   const perPage = opts?.perPage ?? 50;
   const tryFilters = [
@@ -111,6 +111,9 @@ export async function getProductsByCategory(
       const params: Record<string, unknown> = { filter, perPage };
       if (opts?.sort) {
         params.sort = opts.sort;
+      }
+      if (opts?.page) {
+        params.page = opts.page;
       }
       const res = await pb.get('/api/collections/products/records', {
         params,

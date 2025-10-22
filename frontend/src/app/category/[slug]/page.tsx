@@ -28,6 +28,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import AddToCartButton from '@/components/AddToCartButton.client';
 
+import Pagination from '@/components/Pagination.client';
 import FilterDropdown from '@/components/FilterDropdown.client';
 
 const PB_URL =
@@ -55,6 +56,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = params;
   const category = await getCategoryBySlug(slug);
   const sort = searchParams.sort as string;
+  const page = searchParams.page ? parseInt(searchParams.page as string) : 1;
+  const perPage = searchParams.perPage ? parseInt(searchParams.perPage as string) : 5;
 
   if (!category) {
     return (
@@ -83,8 +86,9 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   // --- end new ---
 
   const products = await getProductsByCategory(category.id, {
-    perPage: 100,
+    perPage: perPage,
     sort: sort,
+    page: page,
   });
   return (
     <main className="w-full py-12">
@@ -186,169 +190,176 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               </div>
             </>
           ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-1 gap-4 w-full">
-              {products.items.map((p: Product) => {
-                const image =
-                  (p.images && p.images.length > 0 && p.images[0]) ||
-                  null;
-                const imageUrl = image
-                  ? image.startsWith('http')
-                    ? image
-                    : `${PB_URL}/api/files/${
-                        (p.collectionId as string) ?? 'products'
-                      }/${p.id}/${encodeURIComponent(
-                        image as string
-                      )}`
-                  : null;
+            <>
+              <ul className="grid grid-cols-1 sm:grid-cols-1 gap-4 w-full">
+                {products.items.map((p: Product) => {
+                  const image =
+                    (p.images && p.images.length > 0 && p.images[0]) ||
+                    null;
+                  const imageUrl = image
+                    ? image.startsWith('http')
+                      ? image
+                      : `${PB_URL}/api/files/${
+                          (p.collectionId as string) ?? 'products'
+                        }/${p.id}/${encodeURIComponent(
+                          image as string
+                        )}`
+                    : null;
 
-                return (
-                  <li key={p.id} className="relative">
-                    <div className="bg-gradient-to-br from-[#060606] via-zinc-900 to-[#111111] text-white shadow-2xl border border-rose-900/10 rounded-lg overflow-hidden">
-                      <div className="flex flex-col sm:flex-row items-start gap-4 p-5">
-                        {/* Image column */}
-                        <div className="shrink-0 w-full sm:w-40 ">
-                          <div className="h-36 w-full relative rounded-md bg-muted overflow-hidden scanlines">
-                            {imageUrl ? (
-                              <Image
-                                src={imageUrl}
-                                alt={String(
-                                  p.name ?? p.title ?? 'Product image'
-                                )}
-                                fill
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-sm text-muted-foreground">
-                                No image
-                              </div>
-                            )}
+                  return (
+                    <li key={p.id} className="relative">
+                      <div className="bg-gradient-to-br from-[#060606] via-zinc-900 to-[#111111] text-white shadow-2xl border border-rose-900/10 rounded-lg overflow-hidden">
+                        <div className="flex flex-col sm:flex-row items-start gap-4 p-5">
+                          {/* Image column */}
+                          <div className="shrink-0 w-full sm:w-40 ">
+                            <div className="h-36 w-full relative rounded-md bg-muted overflow-hidden scanlines">
+                              {imageUrl ? (
+                                <Image
+                                  src={imageUrl}
+                                  alt={String(
+                                    p.name ?? p.title ?? 'Product image'
+                                  )}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-sm text-muted-foreground">
+                                  No image
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Details column */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-2xl font-extrabold leading-tight text-white tracking-tight uppercase">
-                            {p.title ?? p.name ?? 'Untitled'}
-                          </h3>
+                          {/* Details column */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-2xl font-extrabold leading-tight text-white tracking-tight uppercase">
+                              {p.title ?? p.name ?? 'Untitled'}
+                            </h3>
 
-                          {p.description && (
-                            <p className="mt-2 text-sm text-zinc-300 line-clamp-3">
-                              {p.description}
-                            </p>
-                          )}
+                            {p.description && (
+                              <p className="mt-2 text-sm text-zinc-300 line-clamp-3">
+                                {p.description}
+                              </p>
+                            )}
 
-                          <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-zinc-300">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`h-2 w-2 rounded-full ${
-                                  p.isAvailable
-                                    ? 'bg-emerald-400'
-                                    : 'bg-zinc-500'
-                                }`}
-                              />
-                              <div>
-                                <div className="text-zinc-100 font-medium">
-                                  Availability
-                                </div>
-                                <div className="text-zinc-300 text-xs">
-                                  {p.isAvailable === true
-                                    ? p.stock
-                                    : typeof p.stock === 'number'
-                                    ? `${p.stock} in stock`
-                                    : 'Unknown'}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <span className="h-2 w-2 rounded-full bg-rose-500" />
-                              <div>
-                                <div className="text-zinc-100 font-medium">
-                                  Art.-Nr.
-                                </div>
-                                <div className="text-zinc-300 text-xs">
-                                  {wordToUpperCase(p.id)}
-                                </div>
-                              </div>
-                            </div>
-
-                            {p.updated && (
+                            <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-zinc-300">
                               <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 rounded-full bg-orange-400" />
+                                <span
+                                  className={`h-2 w-2 rounded-full ${
+                                    p.isAvailable
+                                      ? 'bg-emerald-400'
+                                      : 'bg-zinc-500'
+                                  }`}
+                                />
                                 <div>
                                   <div className="text-zinc-100 font-medium">
-                                    Updated
+                                    Availability
                                   </div>
                                   <div className="text-zinc-300 text-xs">
-                                    {new Date(
-                                      p.updated
-                                    ).toLocaleDateString()}
+                                    {p.isAvailable === true
+                                      ? p.stock
+                                      : typeof p.stock === 'number'
+                                      ? `${p.stock} in stock`
+                                      : 'Unknown'}
                                   </div>
                                 </div>
                               </div>
-                            )}
 
-                            <div className="flex items-center gap-2">
-                              <span className="h-2 w-2 rounded-full bg-sky-400" />
-                              <div>
-                                <div className="text-zinc-100 font-medium">
-                                  Category
+                              <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                                <div>
+                                  <div className="text-zinc-100 font-medium">
+                                    Art.-Nr.
+                                  </div>
+                                  <div className="text-zinc-300 text-xs">
+                                    {wordToUpperCase(p.id)}
+                                  </div>
                                 </div>
-                                <div className="text-zinc-300 text-xs">
-                                  {category.name}
+                              </div>
+
+                              {p.updated && (
+                                <div className="flex items-center gap-2">
+                                  <span className="h-2 w-2 rounded-full bg-orange-400" />
+                                  <div>
+                                    <div className="text-zinc-100 font-medium">
+                                      Updated
+                                    </div>
+                                    <div className="text-zinc-300 text-xs">
+                                      {new Date(
+                                        p.updated
+                                      ).toLocaleDateString()}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-sky-400" />
+                                <div>
+                                  <div className="text-zinc-100 font-medium">
+                                    Category
+                                  </div>
+                                  <div className="text-zinc-300 text-xs">
+                                    {category.name}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Price & CTA column */}
-                        <div className="w-full sm:w-56 flex-shrink-0 flex flex-col items-start sm:items-end justify-between gap-3">
-                          <div className="text-right">
-                            {p.price !== undefined && (
-                              <div className="text-3xl font-extrabold text-rose-500 drop-shadow-[0_10px_30px_rgba(220,38,38,0.22)]">
-                                {formatVND(p.price)}
+                          {/* Price & CTA column */}
+                          <div className="w-full sm:w-56 flex-shrink-0 flex flex-col items-start sm:items-end justify-between gap-3">
+                            <div className="text-right">
+                              {p.price !== undefined && (
+                                <div className="text-3xl font-extrabold text-rose-500 drop-shadow-[0_10px_30px_rgba(220,38,38,0.22)]">
+                                  {formatVND(p.price)}
+                                </div>
+                              )}
+                              <div className="text-xs text-zinc-400 mt-1">
+                                incl. VAT
                               </div>
-                            )}
-                            <div className="text-xs text-zinc-400 mt-1">
-                              incl. VAT
                             </div>
-                          </div>
 
-                          <div className="w-full sm:w-auto mt-2 sm:mt-0 flex flex-col gap-2">
-                            <AddToCartButton
-                              product={p}
-                              className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 font-semibold text-sm text-white transition-transform transform ${
-                                (process.env
-                                  .NEXT_PUBLIC_ENABLE_ADD_TO_CART ??
-                                  'false') === 'true' &&
-                                (typeof p.stock !== 'number' ||
-                                  p.stock > 0)
-                                  ? 'bg-gradient-to-b from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 active:scale-95 shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_16px_40px_rgba(220,38,38,0.15)] border border-rose-800'
-                                  : 'bg-zinc-700/40 cursor-not-allowed'
-                              }`}
-                            >
-                              Add to cart
-                            </AddToCartButton>
+                            <div className="w-full sm:w-auto mt-2 sm:mt-0 flex flex-col gap-2">
+                              <AddToCartButton
+                                product={p}
+                                className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 font-semibold text-sm text-white transition-transform transform ${
+                                  (process.env
+                                    .NEXT_PUBLIC_ENABLE_ADD_TO_CART ??
+                                    'false') === 'true' &&
+                                  (typeof p.stock !== 'number' ||
+                                    p.stock > 0)
+                                    ? 'bg-gradient-to-b from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 active:scale-95 shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_16px_40px_rgba(220,38,38,0.15)] border border-rose-800'
+                                    : 'bg-zinc-700/40 cursor-not-allowed'
+                                }`}
+                              >
+                                Add to cart
+                              </AddToCartButton>
 
-                            <Link
-                              href={`/product/${p.slug ?? p.id}`}
-                              className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:underline"
-                            >
-                              View details
-                            </Link>
-                          </div>
+                              <Link
+                                href={`/product/${p.slug ?? p.id}`}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:underline"
+                              >
+                                View details
+                              </Link>
+                            </div>
 
-                          <div className="mt-2 text-sm text-emerald-400">
-                            Online • Available now
+                            <div className="mt-2 text-sm text-emerald-400">
+                              Online • Available now
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Pagination
+                totalItems={products.totalItems}
+                perPage={perPage}
+                page={page}
+              />
+            </>
           )}
         </div>
       </section>
