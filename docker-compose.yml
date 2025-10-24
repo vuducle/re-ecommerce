@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # --- Backend Service (PocketBase) ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: re-ecommerce-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist PocketBase data
+      - ./backend/pb_data:/pb/pb_data
+    environment:
+      - TZ=Europe/Berlin
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  # --- Frontend Service (Next.js) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: re-ecommerce-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_POCKETBASE_URL=http://backend:8080
+      # Add any other environment variables here
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pb_data:
+    driver: local
