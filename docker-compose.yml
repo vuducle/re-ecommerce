@@ -15,6 +15,11 @@ services:
       - ./backend/pb_data:/pb/pb_data
     environment:
       - TZ=Europe/Berlin
+      # Add any PocketBase specific env vars here if needed
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - isProduction=${isProduction}
+      - FRONTEND_URL=${FRONTEND_URL}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
       interval: 30s
@@ -38,8 +43,12 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_POCKETBASE_URL=http://backend:8080
+      - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL}
       # Add any other environment variables here
+      - NEXT_PUBLIC_ENABLE_ADD_TO_CART=${NEXT_PUBLIC_ENABLE_ADD_TO_CART}
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD}
+
     networks:
       - app-network
 
