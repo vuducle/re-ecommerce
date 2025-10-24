@@ -1,3 +1,4 @@
 /backend/pb_data/**
 /backend/.env
 /meow
+.env

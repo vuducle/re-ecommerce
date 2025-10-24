@@ -5,11 +5,20 @@ import WishlistButton from '@/components/WishlistButton.client';
 import AddToCartButton from '@/components/AddToCartButton.client';
 import type { Metadata } from 'next';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
-  const { items } = await getProducts();
-  return items.map((product) => ({
-    slug: product.slug,
-  }));
+  try {
+    const { items } = await getProducts();
+    return items.map((product) => ({
+      slug: product.slug,
+    }));
+  } catch (error) {
+    // Return empty array if API is not available (e.g., during Docker build)
+    console.warn('Failed to generate static params for products:', error);
+    return [];
+  }
 }
 
 type Props = { params: { slug: string } };

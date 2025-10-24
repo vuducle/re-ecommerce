@@ -3,9 +3,12 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
+# Install native build dependencies for Alpine Linux
+RUN apk add --no-cache libc6-compat python3 make g++
+
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # STAGE 2: Builder
 FROM node:20-alpine AS builder
@@ -17,8 +20,9 @@ COPY . .
 
 # Set environment variable for build
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
 
-# Build the application
+# Build the application with dynamic rendering (skip static generation)
 RUN npm run build
 
 # STAGE 3: Runner
