@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone', // Required for Docker deployment
   env: {
     POCKETBASE_URL: process.env.POCKETBASE_URL,
   },

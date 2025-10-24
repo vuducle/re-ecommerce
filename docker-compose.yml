@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # --- Backend Service (PocketBase) ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: re-ecommerce-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist PocketBase data
+      - ./backend/pb_data:/pb/pb_data
+    environment:
+      - TZ=Europe/Berlin
+      # Add any PocketBase specific env vars here if needed
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - isProduction=${isProduction}
+      - FRONTEND_URL=${FRONTEND_URL}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  # --- Frontend Service (Next.js) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: re-ecommerce-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL}
+      # Add any other environment variables here
+      - NEXT_PUBLIC_ENABLE_ADD_TO_CART=${NEXT_PUBLIC_ENABLE_ADD_TO_CART}
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD}
+
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pb_data:
+    driver: local
