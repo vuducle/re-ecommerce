@@ -6,6 +6,10 @@ import InfoSection from '../components/InfoSection';
 import VideoSection from '../components/VideoSection';
 import type { Metadata } from 'next';
 
+// Force dynamic rendering for production
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'RE-Commerce - Welcome to RE-Commerce',
 };
@@ -22,9 +26,6 @@ export default async function Home() {
         <InfoSection />
         <VideoSection />
       </main>
-
-
-
     </div>
   );
 }
