@@ -1,5 +1,5 @@
 import React from 'react';
-import { getProductBySlug, getProducts } from '@/lib/pocketbase';
+import { getProductBySlug } from '@/lib/pocketbase';
 import ProductGallery from '@/components/ProductGallery.client';
 import WishlistButton from '@/components/WishlistButton.client';
 import AddToCartButton from '@/components/AddToCartButton.client';
@@ -7,19 +7,7 @@ import type { Metadata } from 'next';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
-
-export async function generateStaticParams() {
-  try {
-    const { items } = await getProducts();
-    return items.map((product) => ({
-      slug: product.slug,
-    }));
-  } catch (error) {
-    // Return empty array if API is not available (e.g., during Docker build)
-    console.warn('Failed to generate static params for products:', error);
-    return [];
-  }
-}
+export const revalidate = 0;
 
 type Props = { params: { slug: string } };
 
