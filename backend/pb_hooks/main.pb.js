@@ -588,12 +588,18 @@ routerAdd('POST', '/create-checkout-session', async (e) => {
       });
     }
 
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Check both NODE_ENV and isProduction for flexibility
+    const isProduction =
+      process.env.NODE_ENV === 'production' ||
+      process.env.isProduction === 'production';
+    const frontendUrl =
+      process.env.FRONTEND_URL || 'http://localhost:3000';
+
     const successUrl = isProduction
-      ? `${process.env.FRONTEND_URL}/checkout/success` // IMPORTANT: Replace with your production success URL
+      ? `${frontendUrl}/checkout/success`
       : 'http://localhost:3000/checkout/success';
     const cancelUrl = isProduction
-      ? `${process.env.FRONTEND_URL}/checkout` // IMPORTANT: Replace with your production cancel URL
+      ? `${frontendUrl}/checkout`
       : 'http://localhost:3000/checkout';
 
     let body = `customer=${encodeURIComponent(

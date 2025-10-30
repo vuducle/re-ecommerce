@@ -16,6 +16,7 @@ services:
     environment:
       - TZ=Europe/Berlin
       # Add any PocketBase specific env vars here if needed
+      - NODE_ENV=${NODE_ENV:-production}
       - STRIPE_API_KEY=${STRIPE_API_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - isProduction=${isProduction}
