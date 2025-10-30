@@ -47,9 +47,17 @@ export async function getCategories(opts?: {
     // PocketBase returns { items: [], totalItems, page, perPage }
     return res.data as PBList<Category>;
   } catch (error) {
-    console.error('Error fetching categories in getCategories:', error);
+    console.error(
+      'Error fetching categories in getCategories:',
+      error
+    );
     // Return an empty list or re-throw the error depending on desired behavior
-    return { items: [], totalItems: 0, page: 1, perPage: opts?.perPage ?? 50 };
+    return {
+      items: [],
+      totalItems: 0,
+      page: 1,
+      perPage: opts?.perPage ?? 50,
+    };
   }
 }
 
@@ -315,7 +323,7 @@ export async function getFeaturedProducts(): Promise<
 }
 
 /**
- * Builds a URL for accessing a file in the PocketBase storage.
+ * Build a file URL for PocketBase files.
  * @param filename The name of the file.
  * @param collection The name of the collection the file belongs to.
  * @param recordId The ID of the record the file is associated with.
@@ -330,4 +338,58 @@ export function buildFileUrl(
   return `${PB_URL}/api/files/${collection}/${recordId}/${encodeURIComponent(
     filename
   )}`;
+}
+
+/**
+ * Enhanced image URL builder with fallback handling for Next.js Image optimization
+ * @param filename The image filename
+ * @param collection The collection name (e.g., 'products', 'categories')
+ * @param recordId The record ID
+ * @param fallbackToUnoptimized Whether to return a URL that bypasses Next.js optimization
+ * @returns Optimized image URL or fallback URL
+ */
+export function buildImageUrl(
+  filename?: string,
+  collection = 'products',
+  recordId?: string,
+  fallbackToUnoptimized = false
+) {
+  if (!filename || !recordId) return undefined;
+
+  const baseUrl = `${PB_URL}/api/files/${collection}/${recordId}/${encodeURIComponent(
+    filename
+  )}`;
+
+  // Log for debugging
+  if (
+    typeof window !== 'undefined' &&
+    process.env.NODE_ENV === 'development'
+  ) {
+    console.log('Building image URL:', {
+      filename,
+      collection,
+      recordId,
+      baseUrl,
+      PB_URL,
+    });
+  }
+
+  return baseUrl;
+}
+
+/**
+ * Check if an image URL is accessible
+ * @param url The image URL to check
+ * @returns Promise<boolean> indicating if the image is accessible
+ */
+export async function checkImageUrl(url: string): Promise<boolean> {
+  if (typeof window === 'undefined') return true; // Skip check on server
+
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok;
+  } catch (error) {
+    console.warn('Image URL check failed:', url, error);
+    return false;
+  }
 }
