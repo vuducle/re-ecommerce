@@ -27,9 +27,7 @@ STRIPE_WEBHOOK_SECRET=your_stripe_webhook
 
 **IMPORTANT**: `NEXT_PUBLIC_POCKETBASE_URL` must be the PUBLIC URL that browsers can access!
 
-### 2. Rebuild Your Containers
-
-The environment variables need to be available during the BUILD process:
+### 2. Deploy/Rebuild Your Containers
 
 ```bash
 # Stop containers
@@ -39,26 +37,10 @@ docker-compose down
 docker-compose up --build -d
 
 # Check logs to verify
-docker-compose logs -f frontend
+docker-compose logs -f
 ```
 
 ### 3. Verify the Configuration
-
-#### Check if environment variable is being used:
-
-```bash
-# Enter the frontend container
-docker exec -it re-ecommerce-frontend sh
-
-# Check the runtime config
-cat /app/public/__env.js
-
-# Should output something like:
-# window.__RUNTIME_CONFIG__ = {
-#   NEXT_PUBLIC_POCKETBASE_URL: "https://api.ducworld.com",
-#   ...
-# };
-```
 
 #### Test in browser console:
 
@@ -68,8 +50,7 @@ Open your browser console on `https://ducworld.com` and run:
 // Check runtime config
 console.log(window.__RUNTIME_CONFIG__);
 
-// Check if fetch is using correct URL
-console.log('PB_URL should be: https://api.ducworld.com');
+// Should show: { NEXT_PUBLIC_POCKETBASE_URL: "https://api.ducworld.com" }
 ```
 
 ### 4. Verify Your Caddy Configuration

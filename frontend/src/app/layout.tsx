@@ -43,13 +43,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Get the environment variable on the server side
+  const pbUrl =
+    process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
+
   return (
     <html lang="en">
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.__RUNTIME_CONFIG__ = window.__RUNTIME_CONFIG__ || {};
+              window.__RUNTIME_CONFIG__ = {
+                NEXT_PUBLIC_POCKETBASE_URL: "${pbUrl}"
+              };
             `,
           }}
         />

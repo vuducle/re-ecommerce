@@ -47,10 +47,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy the entrypoint script
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh && chown nextjs:nodejs /docker-entrypoint.sh
-
 # Switch to non-root user
 USER nextjs
 
@@ -60,5 +56,5 @@ EXPOSE 3669
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
 
-# Start the application using entrypoint script
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Start the application
+CMD ["node", "server.js"]

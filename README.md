@@ -279,6 +279,46 @@ NODE_ENV=production
 
 If you want to seed or reset the database, replace `pb_data` with your own directory or modify the files directly (make backups first).
 
+## Deployment
+
+### Docker + Caddy (Production)
+
+1. **Create `.env` file:**
+
+   ```env
+   NEXT_PUBLIC_POCKETBASE_URL=https://api.yourdomain.com
+   FRONTEND_URL=https://yourdomain.com
+   PB_ADMIN_EMAIL=admin@yourdomain.com
+   PB_ADMIN_PASSWORD=your-secure-password
+   NEXT_PUBLIC_ENABLE_ADD_TO_CART=true
+   isProduction=production
+   ```
+
+2. **Deploy:**
+
+   ```bash
+   docker-compose up --build -d
+   ```
+
+3. **View logs:**
+
+   ```bash
+   docker-compose logs -f
+   ```
+
+4. **Update after changes:**
+   ```bash
+   docker-compose down && docker-compose up --build -d
+   ```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for full VPS deployment guide.
+
+### Important Notes for Docker Deployment
+
+- `NEXT_PUBLIC_POCKETBASE_URL` must be the **public URL** accessible from browsers
+- Always **rebuild** after changing environment variables
+- Clear browser cache after deployment
+
 ## Developer notes
 
 - API helpers for the frontend: `frontend/src/lib/pocketbase.ts` contains convenience functions for categories, products and auth.

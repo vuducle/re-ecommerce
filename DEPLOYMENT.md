@@ -1,8 +1,34 @@
 # VPS Deployment Guide
 
+## Quick Reference Commands
+
+### Deploy/Update
+
+```bash
+# Stop, rebuild, and start
+docker-compose down && docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Check status
+docker-compose ps
+```
+
+### Environment Setup
+
+```env
+# Required in .env file
+NEXT_PUBLIC_POCKETBASE_URL=https://api.ducworld.com
+FRONTEND_URL=https://ducworld.com
+```
+
+---
+
 ## Prerequisites
 
 1. **VPS Requirements:**
+
    - Ubuntu 20.04+ or Debian 11+ recommended
    - At least 1GB RAM (2GB recommended)
    - 10GB+ storage
@@ -54,6 +80,7 @@ nano .env
 ```
 
 Update the `NEXT_PUBLIC_POCKETBASE_URL` with your actual domain or VPS IP:
+
 - For domain: `https://yourdomain.com`
 - For IP: `http://YOUR_VPS_IP:8080`
 
@@ -73,16 +100,19 @@ docker-compose logs -f
 ## Step 5: Configure Nginx Reverse Proxy (Recommended)
 
 Install Nginx:
+
 ```bash
 sudo apt install nginx -y
 ```
 
 Create Nginx configuration:
+
 ```bash
 sudo nano /etc/nginx/sites-available/re-ecommerce
 ```
 
 Add this configuration:
+
 ```nginx
 server {
     listen 80;
@@ -127,6 +157,7 @@ server {
 ```
 
 Enable the site:
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/re-ecommerce /etc/nginx/sites-enabled/
 sudo nginx -t
@@ -158,6 +189,7 @@ sudo ufw enable
 ## Useful Commands
 
 ### View logs:
+
 ```bash
 # All services
 docker-compose logs -f
@@ -168,16 +200,19 @@ docker-compose logs -f backend
 ```
 
 ### Restart services:
+
 ```bash
 docker-compose restart
 ```
 
 ### Stop services:
+
 ```bash
 docker-compose down
 ```
 
 ### Update and rebuild:
+
 ```bash
 git pull
 docker-compose down
@@ -185,6 +220,7 @@ docker-compose up -d --build
 ```
 
 ### Backup PocketBase data:
+
 ```bash
 # Create backup
 tar -czf backup-$(date +%Y%m%d).tar.gz backend/pb_data/
@@ -196,29 +232,34 @@ tar -xzf backup-YYYYMMDD.tar.gz
 ## Troubleshooting
 
 ### Check container status:
+
 ```bash
 docker-compose ps
 ```
 
 ### Check container health:
+
 ```bash
 docker inspect re-ecommerce-backend | grep -A 10 Health
 docker inspect re-ecommerce-frontend | grep -A 10 Health
 ```
 
 ### Access container shell:
+
 ```bash
 docker exec -it re-ecommerce-frontend sh
 docker exec -it re-ecommerce-backend sh
 ```
 
 ### Check disk space:
+
 ```bash
 df -h
 docker system df
 ```
 
 ### Clean up Docker:
+
 ```bash
 # Remove unused images and containers
 docker system prune -a
@@ -238,6 +279,7 @@ docker system prune -a
 ## Monitoring & Maintenance
 
 ### Set up automatic backups (cron job):
+
 ```bash
 # Edit crontab
 crontab -e
@@ -247,6 +289,7 @@ crontab -e
 ```
 
 ### Monitor disk space:
+
 ```bash
 # Check disk usage weekly
 0 0 * * 0 df -h > /var/log/disk-usage.log
@@ -266,6 +309,7 @@ crontab -e
 ## Support
 
 For issues, check:
+
 - Docker logs: `docker-compose logs`
 - Nginx logs: `sudo tail -f /var/log/nginx/error.log`
 - System logs: `sudo journalctl -xe`
