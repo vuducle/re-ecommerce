@@ -1,7 +1,34 @@
 import axios from 'axios';
 
-export const PB_URL =
-  process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
+// Runtime configuration helper
+const getRuntimeConfig = () => {
+  if (
+    typeof window !== 'undefined' &&
+    (window as any).__RUNTIME_CONFIG__
+  ) {
+    return (window as any).__RUNTIME_CONFIG__;
+  }
+  return {};
+};
+
+// Get PocketBase URL with runtime config fallback
+const getPocketBaseUrl = () => {
+  // 1. Try runtime config (injected at container startup)
+  const runtimeConfig = getRuntimeConfig();
+  if (runtimeConfig.NEXT_PUBLIC_POCKETBASE_URL) {
+    return runtimeConfig.NEXT_PUBLIC_POCKETBASE_URL;
+  }
+
+  // 2. Try environment variable
+  if (process.env.NEXT_PUBLIC_POCKETBASE_URL) {
+    return process.env.NEXT_PUBLIC_POCKETBASE_URL;
+  }
+
+  // 3. Fallback to localhost
+  return 'http://127.0.0.1:8090';
+};
+
+export const PB_URL = getPocketBaseUrl();
 
 export const pb = axios.create({
   baseURL: PB_URL,
