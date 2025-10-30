@@ -12,7 +12,11 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export default function AddToCartButton({ product, className, children }: Props) {
+export default function AddToCartButton({
+  product,
+  className,
+  children,
+}: Props) {
   const dispatch = useDispatch();
   const { showNotification } = useNotification();
 
@@ -21,8 +25,9 @@ export default function AddToCartButton({ product, className, children }: Props)
     showNotification(`Added ${product.name} to cart!`, 'success');
   };
 
-  const isEnabled = (process.env.NEXT_PUBLIC_ENABLE_ADD_TO_CART ?? 'false') === 'true';
-  const isAvailable = (product.isAvailable ?? true) && (product.stock ?? 1) > 0;
+  const isEnabled = true;
+  const isAvailable =
+    (product.isAvailable ?? true) && (product.stock ?? 1) > 0;
 
   return (
     <Button

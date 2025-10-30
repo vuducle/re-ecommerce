@@ -361,15 +361,7 @@ export default async function CategoryPage({
                             <div className="w-full sm:w-auto mt-2 sm:mt-0 flex flex-col gap-2">
                               <AddToCartButton
                                 product={p}
-                                className={`inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 font-semibold text-sm text-white transition-transform transform ${
-                                  (process.env
-                                    .NEXT_PUBLIC_ENABLE_ADD_TO_CART ??
-                                    'false') === 'true' &&
-                                  (typeof p.stock !== 'number' ||
-                                    p.stock > 0)
-                                    ? 'bg-gradient-to-b from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 active:scale-95 shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_16px_40px_rgba(220,38,38,0.15)] border border-rose-800'
-                                    : 'bg-zinc-700/40 cursor-not-allowed'
-                                }`}
+                                className={`bg-gradient-to-b from-rose-700 to-rose-600 hover:from-rose-600 hover:to-rose-500 active:scale-95 shadow-[inset_0_2px_0_rgba(255,255,255,0.03),0_16px_40px_rgba(220,38,38,0.15)] border border-rose-800inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 font-semibold text-sm text-white transition-transform transform ${''}`}
                               >
                                 Add to cart
                               </AddToCartButton>
